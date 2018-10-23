@@ -1,0 +1,50 @@
+Todo
+---- 
+[ ] implement a sensor which only plots DEV B gyr_z ! 
+
+
+Improvements for version 0.2 
+---------------------------- 
+
+[Sat Oct 13 10:07:35 PDT 2018] 
+Create a base class which has data_handler, process_data, stream_sample, etc... 
+And the most stripped down , common properties 
+
+Then the data_storage and web_socket and .. classes can inherit from that 
+
+Then I can add functionality to the base class and and all the objects will inherit this functionality. This is efficient and more elegant than adding similar functionality to each class independently, especially when that functionality involves manipulation of data structures each class has . 
+
+
+
+Improvements for version 0.3
+---------------------------- 
+think broadly -- > 
+
+
+
+
+
+
+Troubleshooting 
+--------------- 
+
+Date: Sat Oct 13 09:44:08 PDT 2018
+Issue: Graph of the gyr_z was squiggly / noisy 
+Suggested solution: Software is graphing data from both dev A and B and so x series is not monotonic. Filter out single device to graph 
+
+
+
+
+Common Mistakes
+---------------
+You can only visualize a sensor which has been ADDED to the state machine. If you are trying to visualize a sensor and the graph is not updating properly, turn on u_debug(true) and look at the series_buffer. If the data is not available for that series it means the sensor has not been added to the state machine [Sat Oct 13 10:07:07 PDT 2018] 
+
+
+
+
+Things to be aware of
+---------------------
+
+		
+
+

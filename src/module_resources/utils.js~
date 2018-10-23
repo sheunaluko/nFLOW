@@ -1,0 +1,263 @@
+//Tue Oct  2 18:06:09 PDT 2018
+//General JS utils file 
+//would like to try creating soft?hard? links so that the utils files can be shared 
+
+var u_global_debug = true 
+
+function u_set_debug(b) { 
+    u_global_debug = b 
+} 
+
+function u_bug(tag,...msg) { 
+    if (u_global_debug) { 
+	console.log("<- " + tag + " ->" )
+	for (var i = 0 ; i < msg.length ; i++) { 
+	    console.log(msg[i])
+	}
+	console.log("<- " + tag + " ->" )
+    }
+}
+
+logger.register("bug") 
+
+function u_debug(msg) { 
+    if (u_global_debug) {
+	logger.bug(msg)
+    }
+}
+
+
+
+function u_avg(arr) { 
+    var sum = 0;
+    for( var i = 0; i < arr.length; i++ ){
+	sum += arr[i]
+    }
+    return sum/arr.length 
+}
+
+function u_take(coll,num) { 
+    var ret = Array(num).fill(0) 
+    for (var i =0;i<num; i++) { 
+	ret[i] = coll[i]
+    }
+    return ret 
+} 
+
+function u_arr_mult(arr,x) { 
+    return arr.map( y => y /x ) 
+}
+
+function u_perf(f) { 
+    var num_times = 20000
+    var results = Array(num_times).fill(0) 
+    for (i = 0 ; i < num_times ; i++ ) { 
+	var t0 = performance.now();
+	var result = f() 
+	var t1 = performance.now();
+	results[i] = t1 - t0 
+    } 
+    return u_avg(results) 
+} 
+
+function u_range(a,b) { 
+    var len = b - a 
+    var ret = Array(len).fill(0)  ; 
+    for (var i = 0 ; i< len ; i++) {  
+	ret[i] = a + i 
+    }
+    return ret 
+    
+} 
+
+function u_first(d) { 
+    return d[0]
+} 
+
+
+function u_last(d) { 
+    return d[d.length - 1 ] 
+} 
+
+
+function u_zip(xs,ys) { 
+        return xs.map(function(x,i) { 
+	    return [x, ys[i]]
+	}) 
+}
+
+function u_dict_2_vec(d) { 
+    var ret = [] ; 
+    for (k in d) { 
+	ret.push([ k, d[k] ]) 
+    } 
+    return ret 
+}
+
+function u_number_or_self(d) { 
+    var val = Number(d) 
+    if (isNaN(val)) {
+	return d 
+    } else { 
+	return val 
+    } 
+}
+
+function u_d_map(d,f) { 
+    for (var k in d) {
+	d[k] = f(d[k])
+    }
+    return d 
+}
+
+function u_dict_vals_2_num(d) { 
+    return u_d_map(d,u_number_or_self) 
+}
+    
+
+function u_diff(d) { 
+    var r =   Array(d.length - 1).fill(0) 
+    for (var i = 1 ; i < d.length ; i ++ ) { 
+	r[i-1] = d[i] - d[i-1]
+    }
+    return r 
+}
+
+
+function u_max(d) { 
+    var curr_max = d[0] 
+    
+    for (var i=1;i<d.length;i++) { 
+	if (d[i] > curr_max) { curr_max = d[i] }
+    } 
+    
+    return curr_max 
+} 
+
+
+function u_min(d) { 
+    var curr_min = d[0] 
+    
+    for (var i=1;i<d.length;i++) { 
+	if (d[i] < curr_min) { curr_min = d[i] }
+    } 
+    
+    return curr_min
+    
+} 
+
+
+
+// define ui utilities now ------------> 
+
+
+
+
+function u_dom(s) { 
+    return document.createElement(s) 
+} 
+
+function u_set_inner_html(d,thang) { 
+    if (thang instanceof HTMLElement) { 
+	d.appendChild(thang) 
+    } else { 
+	d.innerHTML = thang 
+    } 
+    
+} 
+
+function flex_row(num,id_base,f) { 
+    var container, i 
+
+    container = u_dom("div")  
+    container.className = "flex-row"  // see styles.css   
+    
+    for (i =0 ; i < num ; i ++ ) { 
+	var d = u_dom("div") 
+	var html = f(i,d) 
+	if (html) { 
+	    u_set_inner_html(d, html) 
+	} 
+	container.appendChild(d) 
+    } 
+	
+    return container  
+     
+}
+
+
+/* 
+ * Create a flexbox of divs [m,n] in shape 
+ * @param {Function} f - accepts row, column, and HTMLelement. Can either mutate the el or return an new el (which will be appended to div at spot r,c) or return String (which will be set to innerHTML) 
+ */ 
+function u_make_div_array(m,n,id_base,f) { 
+    var container, i 
+    
+    container = u_dom("div")  
+    container.className = "flex-column"  // see styles.css  
+    container.id = id_base 
+    
+    container.style = "width: 100% ; height : 100% " 
+    
+    // now we will add in the child elements 
+    for (i =0 ; i < m ; i ++ ) { 
+	
+	//f is a function which takes a row and column and element 
+	//build a function that takes just a col with row hard coded 
+	//and returns f(r,col)
+	var fn = function(col,el) {
+	    return f(i,col,el) 
+	}
+	
+	var new_id_base = id_base + "_" +  i + "," 
+	var row = flex_row(n,new_id_base , fn )
+	container.appendChild(row) 
+    }
+    
+    return container
+    
+
+} 
+
+function u_id_from_loc(m,n,c) { 
+    return c*m + n   // intersing that this function needs arg c, which is (static) number of cols 
+}
+
+function test_div_array(m,n) { 
+    var f = function(r,c,el) { 
+	return (u_id_from_loc(r,c,n)).toString()
+    } 
+
+    return u_make_div_array(m,n,"foo", f) 
+    
+} 
+	
+
+function app_clear() { 
+    var app = document.getElementById("app");
+    while (app.firstChild) {
+	app.removeChild(app.firstChild);
+    }   
+}
+
+function u_app_render(el) { 
+    app_clear() 
+    var app = document.getElementById("app")  
+    app.appendChild(el) 
+}
+
+
+var u_colors = ["black" , "blue" , "red" , "green" , "yellow" , "orange"]
+
+function u_get_colors(num) { 
+    return u_take(u_colors, num) 
+}
+
+
+
+///   extensions 
+
+
+// Array.prototype.first = function(arr) { 
+//     return arr[0] 
+// }
