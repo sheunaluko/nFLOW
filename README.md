@@ -19,3 +19,4 @@ Make sure you include an "app" tag in your html as well, like this:
 Finally, you must include the css styles for proper UI rendering. 
 
 <link rel="stylesheet" href="css/styles.css" type="text/css" />
+
