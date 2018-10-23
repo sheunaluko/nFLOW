@@ -44,7 +44,7 @@ You can only visualize a sensor which has been ADDED to the state machine. If yo
 
 Things to be aware of
 ---------------------
-
+[ ] It is cool that the css can be directly imported into the JS bundle, but must be careful since the css affects global document objects !  -- future versions should alleviate this error source 
 		
 
 

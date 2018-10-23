@@ -2019,12 +2019,86 @@ flow.EW = function () {
 
   return d;
 };
-},{"../module_resources/utils.js":"src/module_resources/utils.js","../module_resources/state_machine_elements.js":"src/module_resources/state_machine_elements.js","../wrtsm.js":"src/wrtsm.js","../core_modules/logger.js":"src/core_modules/logger.js"}],"src/index.js":[function(require,module,exports) {
+},{"../module_resources/utils.js":"src/module_resources/utils.js","../module_resources/state_machine_elements.js":"src/module_resources/state_machine_elements.js","../wrtsm.js":"src/wrtsm.js","../core_modules/logger.js":"src/core_modules/logger.js"}],"../../.nvm/versions/node/v10.0.0/lib/node_modules/parcel-bundler/src/builtins/bundle-url.js":[function(require,module,exports) {
+var bundleURL = null;
+
+function getBundleURLCached() {
+  if (!bundleURL) {
+    bundleURL = getBundleURL();
+  }
+
+  return bundleURL;
+}
+
+function getBundleURL() {
+  // Attempt to find the URL of the current script and use that as the base URL
+  try {
+    throw new Error();
+  } catch (err) {
+    var matches = ('' + err.stack).match(/(https?|file|ftp):\/\/[^)\n]+/g);
+
+    if (matches) {
+      return getBaseURL(matches[0]);
+    }
+  }
+
+  return '/';
+}
+
+function getBaseURL(url) {
+  return ('' + url).replace(/^((?:https?|file|ftp):\/\/.+)\/[^/]+$/, '$1') + '/';
+}
+
+exports.getBundleURL = getBundleURLCached;
+exports.getBaseURL = getBaseURL;
+},{}],"../../.nvm/versions/node/v10.0.0/lib/node_modules/parcel-bundler/src/builtins/css-loader.js":[function(require,module,exports) {
+var bundle = require('./bundle-url');
+
+function updateLink(link) {
+  var newLink = link.cloneNode();
+
+  newLink.onload = function () {
+    link.remove();
+  };
+
+  newLink.href = link.href.split('?')[0] + '?' + Date.now();
+  link.parentNode.insertBefore(newLink, link.nextSibling);
+}
+
+var cssTimeout = null;
+
+function reloadCSS() {
+  if (cssTimeout) {
+    return;
+  }
+
+  cssTimeout = setTimeout(function () {
+    var links = document.querySelectorAll('link[rel="stylesheet"]');
+
+    for (var i = 0; i < links.length; i++) {
+      if (bundle.getBaseURL(links[i].href) === bundle.getBundleURL()) {
+        updateLink(links[i]);
+      }
+    }
+
+    cssTimeout = null;
+  }, 50);
+}
+
+module.exports = reloadCSS;
+},{"./bundle-url":"../../.nvm/versions/node/v10.0.0/lib/node_modules/parcel-bundler/src/builtins/bundle-url.js"}],"css/styles.css":[function(require,module,exports) {
+var reloadCSS = require('_css_loader');
+
+module.hot.dispose(reloadCSS);
+module.hot.accept(reloadCSS);
+},{"_css_loader":"../../.nvm/versions/node/v10.0.0/lib/node_modules/parcel-bundler/src/builtins/css-loader.js"}],"src/index.js":[function(require,module,exports) {
 "use strict";
 
 var _wrtsm = require("./wrtsm.js");
 
 var _rose_gait_workflows = require("./scripts/rose_gait_workflows.js");
+
+require("../css/styles.css");
 
 //The main program 
 //import global wrtsm object 
@@ -2035,7 +2109,7 @@ _wrtsm.wrtsm.flow = _rose_gait_workflows.flow;
 
 console.log(":: " + new Date() + " ::");
 console.log(":: wrtsm initialized ::");
-},{"./wrtsm.js":"src/wrtsm.js","./scripts/rose_gait_workflows.js":"src/scripts/rose_gait_workflows.js"}],"../../.nvm/versions/node/v10.0.0/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./wrtsm.js":"src/wrtsm.js","./scripts/rose_gait_workflows.js":"src/scripts/rose_gait_workflows.js","../css/styles.css":"css/styles.css"}],"../../.nvm/versions/node/v10.0.0/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -2062,7 +2136,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51353" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61131" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
