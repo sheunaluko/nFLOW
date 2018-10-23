@@ -1,4 +1,0 @@
-// defines object that will be attached to window 
-
-export default var wrtsm = {}  
-
