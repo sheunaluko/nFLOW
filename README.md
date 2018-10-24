@@ -14,7 +14,7 @@ Because the UI depends on Bokeh, you will need to include the following in your 
 
 And the following to import the wrtsm module directly: 
 ```html
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/sheunaluko/webrt_state_machine/dist/index.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/sheunaluko/webrt_state_machine@v0.1-alpha/dist/index.js"></script>
  ```
  
 Finally, for UI rendering, make sure you include an "app" tag in your html as well, like this: 
