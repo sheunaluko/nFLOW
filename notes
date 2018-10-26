@@ -33,6 +33,8 @@ Issue: Graph of the gyr_z was squiggly / noisy
 Suggested solution: Software is graphing data from both dev A and B and so x series is not monotonic. Filter out single device to graph 
 
 
+Had an extra space AFTER the sensor name in the gui config object and that MADE THE GRAPH DO NOTHING (no updates) 
+
 
 
 Common Mistakes

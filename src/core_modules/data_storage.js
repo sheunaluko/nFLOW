@@ -1,7 +1,7 @@
 //Tue Oct  2 10:12:11 PDT 2018
 
 import {makeLogger} from "./logger.js"
-import util from "../module_resources/utils.js"
+import {util} from "../module_resources/utils.js"
 
 /**
  * 
@@ -217,9 +217,30 @@ export default class data_storage {
 	link.setAttribute("download", (name || this.session_id)   + ".csv");
 	link.click();
 	
+	
     } 
 
+    /** 
+     * Makes and downloads json string from this.loaded_session 
+     */
+    to_json(name) { 
+	this.log("Creating json file for: " + this.session_id) 
+	var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.loaded_session)) 
+	var downloadAnchorNode = document.createElement('a');
+	downloadAnchorNode.setAttribute("href",     dataStr);
+	downloadAnchorNode.setAttribute("download", (name || this.session_id) + ".json");
+	downloadAnchorNode.click();
+    }
     
+    
+    /** 
+     * Loads json data into local storage 
+     */
+    load_json() { 
+	var i = make_json_input() 
+	i.click() 
+	return i
+    }
     
     
 }
@@ -233,10 +254,35 @@ function get_session_part_names(id) {
 function get_session(id) { 
     var parts_names = get_session_part_names(id) 
     // part names are sorted already 
-    tmp = parts_names.map( function(name) { 
+    var tmp = parts_names.map( function(name) { 
 	return JSON.parse(localStorage.getItem(name))
     }) 
     
     var merged = [].concat.apply([], tmp);
     return merged 
 }
+
+
+function file_cb(evt) { 
+    var f = evt.target.files[0]
+    var fname = f.name.replace(".json","")
+    var reader = new FileReader() 
+    reader.onloadend = function(evt) { 
+	if (evt.target.readyState == FileReader.DONE) {
+	    localStorage.setItem(fname, evt.target.result) 
+	    console.log("[DS]:: Saved item to local storage: " + fname )
+	} else { 
+	    console.log("[DS]:: error reading.. ") 
+	    console.log(evt) 
+	} 
+    }
+    reader.readAsText(f) 
+}
+
+
+function make_json_input() {
+    var i =   document.createElement("input")
+    i.type = "file" 
+    i.addEventListener("change", file_cb ) 
+    return i 
+} 

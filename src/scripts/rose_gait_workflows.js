@@ -106,7 +106,7 @@ flow.test_state_machine_gui = function(d) {
 } 
 
 flow.playback_gui = function(d) {
-    n = 200 
+    var n = 200 
     logger.rg("Creating state machine with size: " + n) 
     var sm = new wrtsm.mods.state_machine({buffer_size :n, gui_mode:  true, debug_mode : false }) 
     
@@ -130,7 +130,7 @@ flow.playback_gui = function(d) {
     ds.load_session() 
     
     //and then create a pipe manager to connect the stored data file to the state machine 
-    pm = new wrtsm.mods.pipe_manager() 
+    var pm = new wrtsm.mods.pipe_manager() 
     pm.connect(ds,sm) 
     
     //return them and can call ds.start_stream() for continuous simulation 

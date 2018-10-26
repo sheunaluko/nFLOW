@@ -3,7 +3,7 @@
 // filefor collecting definitions of Sensors and transitioners
 
 import {logger} from "../core_modules/logger.js"
-import util     from "./utils.js"
+import {util}     from "./utils.js"
 
 logger.register("sme") 
 
@@ -15,13 +15,15 @@ var sme = { sensors : { dev_a : {} , dev_b : {} } ,
 //i.e. [{:acc_x :acc_y... } , ... ] => [ acc_x, acc_x ... ] 
 sme.sensors.field = function(field) { 
     return function(d) { 
-	return util.last(d)[field] 
+	d = d.buffer 
+	return util.last(buffer)[field] 
     }
 } 
 
 //field diff will take the  diff of a particular field in the data object 
 sme.sensors.field_diff = function(field) { 
     return function(d) { 
+	d = d.buffer 
 	var l = d.length 
 	return d[l-1][field] - d[l-2][field]
     }
@@ -39,8 +41,9 @@ sme.is_dev_a = function (d) {
 
 sme.sensors.dev_b.field = function(field) { 
     //return sme.generic_filter(sme.is_dev_b , d=>d[field] ) 
-    return function(buf) {
-	d = util.last(buf) 
+    return function(d) {
+	var buf = d.buffer 
+	var d = util.last(buf) 
 	if (d.dev == "B") { 
 	    return d[field]
 	} else { 

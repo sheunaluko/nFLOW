@@ -56,24 +56,44 @@ export default class state_machine {
 	this.buffer.push(obj) 
 	this.buffer.shift() 
     } 
-
+    
+    /*
+     * Computes the order that sensors will be evaluated in 
+     */
+    set_sensor_order() { 
+	var compare = function(x,y) { 
+	    var l1 = x[1].level
+	    var l2 = y[1].level
+	    //console.log( [l1, l2] ) 
+	    if (l1 > l2 ) {   //index 2 is the level ! 
+		return 1
+	    } else  { 
+		return -1
+	    } 
+	}
+	this.sensor_order = util.dict_2_vec(this.sensors).sort(compare).map(e=>e[0])
+    }
+    
+    
     /** 
      * Adds a sensor to the state machine. 
      * @param {Object} opts - contains id, f (function) , graph (if gui_mode). Graph should be id of the graph that the sensor should be graphed on 
      */
     add_sensor(opts) { 
-	var id,f
-	id = opts.id ; f = opts.f 
+	var id,f,l
+	id = opts.id ; f = opts.f ; l = opts.level 
 	//register the sensor 
 	this.sensors[id] = {} 
   	//add the function 
 	this.sensors[id]["function"] = f 
 	//and then allocate a buffer for the sensor values 
 	this.sensors[id]["buffer"] = Array(this.sensor_buffer_size).fill(NaN) 
+	//and then allocate the sensor level, 0 if undefined 
+	this.sensors[id]["level"] = l || 0 
 	if (this.debug_mode) { 
 	    this.log("Added sensor: " + id) 
 	}
-	
+	this.set_sensor_order() 
     } 
     
     /** 
@@ -101,11 +121,10 @@ export default class state_machine {
      * @param {String} id - Sensor id to run   
      */
     run_sensor(id) { 
-	var buffer = this.buffer 
 	//get the sensor function
 	var f = this.sensors[id]["function"]
-	//run the sensor on the current buffer 
-	var val = f(buffer) 
+	//run the sensor passing in the sm object
+	var val = f(this) 
 	
 	/*
 	  sensors 
@@ -113,8 +132,6 @@ export default class state_machine {
 	  this allows the ability for sensors to act simultaneously as data filters 
 	  by introspecting on the data_packet somehow and deciding to reject it from 
 	  their buffer. 
-	  This however also allows for the possibility that the sensor buffers are no longer
-	  synced in time.. not sure if this is a potential source of confusion in the future 
 	 
 	*/
 	
@@ -142,7 +159,7 @@ export default class state_machine {
      * Used to make it easier to write Detectors 
      * @param {String} id - Sensor id 
      */
-    get_sensor_last_N(id) { 
+    get_sensor_last_1(id) { 
 	return get_sensor_last_N(id, 1 ) 
     }
     
@@ -207,6 +224,22 @@ export default class state_machine {
 	}
 	
     } 
+    
+    
+    
+    /** 
+     * Run all sensors. Will sort them by the sensor level 
+     */
+    run_sensors() { 
+	for (var i =0 ; i < this.sensor_order.length; i++ ) { 
+	    var sensor_id = this.sensor_order[i]
+	    var val = this.run_sensor(sensor_id) 
+	    if (this.gui_mode){ 
+		this.sensors_gui_buffer[sensor_id] = val 
+	    }
+	}
+	
+    }
 
 
     /** 
@@ -219,13 +252,7 @@ export default class state_machine {
 	this.update_buffer_with_data_object(obj) 
 	
 	//2. now we need to update all of the sensors 
-	for (var sensor_id in this.sensors ) { 
-	    var val = this.run_sensor(sensor_id) 
-	    if (this.gui_mode){ 
-		this.sensors_gui_buffer[sensor_id] = val 
-	    } 
-	} 
-	
+	this.run_sensors() 
 	
 	//3. now we run all the transitioners (which rely on most up to date Sensor values) 
 	for (var transitioner_id in this.transitioners ) { 
