@@ -2,7 +2,6 @@ import {params} from "../module_resources/global_params.js"
 import {util}     from "../module_resources/utils.js" 
 
 
-var plt = Bokeh.Plotting;
 
 function make_y_series(len) { 
     return Array(len).fill(0) 
@@ -36,7 +35,7 @@ function create_multi_line_graph(opts) {
     // WOW ! -- how lucky to find sizing_mode : stretch_both lmao 
     // https://github.com/bokeh/bokeh/issues/4958
     
-    var p = plt.figure({ title: title,sizing_mode : 'stretch_both' })
+    var p = Bokeh.Plotting.figure({ title: title,sizing_mode : 'stretch_both' })
     
      
     //add the multiline 
@@ -53,7 +52,7 @@ function create_multi_line_graph(opts) {
     p.add_tools(new Bokeh.HoverTool({tooltips : tooltips , line_policy : "next"} ) ) 
     
     //NEXT STEP -- > NEXT STEP -- > NEXT STEP -- > NEXT STEP -- > NEXT STEP -- > 
-    //Need to call plt.show(p , HTMLelement) 
+    //Need to call Bokeh.Plotting.show(p , HTMLelement) 
     return { plot : p , glyph : glyph , source : source } 
 	     
     
@@ -135,7 +134,7 @@ class Graph {
     render_into_element(el) { 
 	//el.innerHTML = 'waiting'
 	//this.parent = el 
-	plt.show(this.multi_line_graph, el) 
+	Bokeh.Plotting.show(this.multi_line_graph, el) 
     } 
     
 }
