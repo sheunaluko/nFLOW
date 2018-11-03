@@ -96,7 +96,7 @@ flow.test_state_machine_gui = function(d) {
     // ok so at this point everything should be initialized and we should be able 
     // to start profiling and inspecing the state machine 
 
-    sm.init_gui(d) 
+    sm.init_gui("wrtsm",d) 
 
     logger.rg("Returning sm") 
     return sm 
@@ -123,7 +123,7 @@ flow.playback_gui = function(d) {
 
     // ok so at this point state machine should be initialized 
     logger.rg("Calling sm.init_gui") 
-    sm.init_gui(d) 
+    sm.init_gui("wrtsm", d) 
     
     //will load the file from storage 
     var ds = new wrtsm.mods.data_storage("eugene_walk_rev") 

@@ -13,4 +13,4 @@ logger.register = function(tag) {
 } 
 
 
-export {logger} 
+export {logger}  

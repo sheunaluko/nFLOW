@@ -3,6 +3,7 @@
 
 import {makeLogger} from "./logger.js"
 import ui from "./ui.js"
+import {util} from "../module_resources/utils.js"
 
 /**
  * 
@@ -16,7 +17,7 @@ export default class state_machine {
      * 
      */ 
     constructor(opts) { 
-	var {buffer_size, gui_mode, debug_mode} = opts
+	var {buffer_size, gui_mode, debug_mode, init} = opts
 	this.log = makeLogger("SM") 
 	this.buffer_size = buffer_size 
 	this.sensor_buffer_size = buffer_size 
@@ -24,7 +25,7 @@ export default class state_machine {
 	this.sensors = {} 
 	this.transitioners = {} 
 	this.transitioner_groups = {} 
-	this.STATE  = {} 
+	this.STATE  = init || {} 
 	this.gui_mode = gui_mode 
 	this.debug_mode = debug_mode || false 
 	if (gui_mode) { 
@@ -90,6 +91,8 @@ export default class state_machine {
 	this.sensors[id]["buffer"] = Array(this.sensor_buffer_size).fill(NaN) 
 	//and then allocate the sensor level, 0 if undefined 
 	this.sensors[id]["level"] = l || 0 
+	//and create the 'last_skipped' flag (see run sensor for more information) 
+	this.sensors[id]["last_skipped"] = false 
 	if (this.debug_mode) { 
 	    this.log("Added sensor: " + id) 
 	}
@@ -99,9 +102,10 @@ export default class state_machine {
     /** 
      * 
      * Init gui 
+     * @param {String|DOM} container - id or reference for container to render into 
      * @param {Object} ui_mapping - Dictionary where keys are graph ids and vals are vectors of the sensors which could be graphed on that graph. E.g { graph-1 : ["acc_x", "acc_z" ] , etc} 
      */
-    init_gui(ui_mapping) { 
+    init_gui(container, ui_mapping) { 
 	this.ui_mapping = ui_mapping 
 	//loop through the graphs 
 	for (var graph in this.ui_mapping )  { 
@@ -110,7 +114,7 @@ export default class state_machine {
 	} 
 	
 	//after all the graphs have been added then we call init 
-	this.ui.init() 
+	this.ui.init(container) 
 	
     } 
 
@@ -139,7 +143,13 @@ export default class state_machine {
 	    //append the new value to the sensors buffer 
 	    this.sensors[id]["buffer"].push(val)
 	    this.sensors[id]["buffer"].shift() 
-	} 
+	    this.sensors[id]["last_skipped"] = false 
+	}  else {
+	    //the sensor rejected a value. In this case, it can be helpful to set a special 
+	    //flag in case there are sensors which derive from this one and also wish to 
+	    //reject 
+	    this.sensors[id]["last_skipped"] = true 
+	}
 	
 	return val 
     } 
@@ -151,7 +161,12 @@ export default class state_machine {
      * @param {Number} num - The number of values to retrieve from END of buffer 
      */
     get_sensor_last_N(id,num) { 
-	return this.sensors[id]["buffer"].slice(this.buffer_size - num) 
+	if (this.sensors[id]["last_skipped"]) { 
+	    //we have skipped a value, so will pass that info on 
+	    return false 
+	} else { 
+	    return this.sensors[id]["buffer"].slice(this.buffer_size - num) 
+	}
     }
 
     /** 
@@ -160,7 +175,12 @@ export default class state_machine {
      * @param {String} id - Sensor id 
      */
     get_sensor_last_1(id) { 
-	return get_sensor_last_N(id, 1 ) 
+	if (this.sensors[id]["last_skipped"]) { 
+	    //we have skipped a value, so will pass that info on 
+	    return false 
+	} else { 
+	    return util.first(this.get_sensor_last_N(id, 1 ) )
+	} 
     }
     
     /** 
@@ -232,8 +252,15 @@ export default class state_machine {
      */
     run_sensors() { 
 	for (var i =0 ; i < this.sensor_order.length; i++ ) { 
+
 	    var sensor_id = this.sensor_order[i]
 	    var val = this.run_sensor(sensor_id) 
+	    
+	    if (this.debug_mode) {
+		this.log("Ran sensor: " + sensor_id + " with result: " )
+		this.log(val)
+	    }
+	    
 	    if (this.gui_mode){ 
 		this.sensors_gui_buffer[sensor_id] = val 
 	    }

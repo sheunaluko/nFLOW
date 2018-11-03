@@ -2,8 +2,10 @@
 
 import {wrtsm} from  "./wrtsm.js"  //import global wrtsm object 
 import {flow}  from  "./scripts/rose_gait_workflows.js" 
-import "../css/styles.css"
 import {util}  from  "./module_resources/utils.js"
+import {beep}  from  "./module_resources/sounds.js"
+
+
 
 // set debug 
 util.set_debug(false)
@@ -11,10 +13,11 @@ util.set_debug(false)
 /* additions to global context */ 
 wrtsm.flow = flow 
 wrtsm.util = util 
+wrtsm.beep = beep 
 
 
 /* - - - - - - - */ 
-console.log(":: wrtsm is initialized ::")
+console.log(":: wrtsm initialized ::")
 
 
 

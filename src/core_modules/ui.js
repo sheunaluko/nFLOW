@@ -4,7 +4,6 @@ import {util}     from "../module_resources/utils.js"
 
 var plt = Bokeh.Plotting;
 
-
 function make_y_series(len) { 
     return Array(len).fill(0) 
 }
@@ -32,12 +31,12 @@ function create_multi_line_graph(opts) {
     })
     
     // make the plot and add some tools
-    var tools = "pan,crosshair,wheel_zoom,box_zoom,reset,save";
-    
+    //var tools = "pan,crosshair,wheel_zoom,box_zoom,reset,save";
+
     // WOW ! -- how lucky to find sizing_mode : stretch_both lmao 
     // https://github.com/bokeh/bokeh/issues/4958
     
-    var p = plt.figure({ title: title, tools: tools , sizing_mode : 'stretch_both' })
+    var p = plt.figure({ title: title,sizing_mode : 'stretch_both' })
     
      
     //add the multiline 
@@ -45,7 +44,13 @@ function create_multi_line_graph(opts) {
 	source: source,
 	line_color: util.get_colors(series_len)
     }) 
+    
+    var tooltips = [
+	["x"    , "$x" ]  , 
+	["y"    , "$y" ] 
+    ]
 
+    p.add_tools(new Bokeh.HoverTool({tooltips : tooltips , line_policy : "next"} ) ) 
     
     //NEXT STEP -- > NEXT STEP -- > NEXT STEP -- > NEXT STEP -- > NEXT STEP -- > 
     //Need to call plt.show(p , HTMLelement) 
@@ -65,7 +70,7 @@ var bokeh_multi_stream = function(ds, x, ys) {
 
     for(var i=0;i<yss.length;i++) {
 	
-	//NOTE* if one of the y values is !FALSE! , then the assumption is that 
+	//NOTE* if one of the y values is false (or undefined) , then the assumption is that 
 	//the series at that index should NOT BE updated 
 	//Sensors in rosegait return false when they wish NOT to be updated 
 	
@@ -165,7 +170,7 @@ export default class ui {
      * After all graphs have been added, init is called to actually display the graphs 
      *
      */
-    init() { 
+    init(container) { 
 	// logic for displaying all of the added graphs 
 	// should make a panel view of sorts and initialize with empty values 
 	var graph_array = util.dict_2_vec(this.graphs) 	
@@ -200,8 +205,13 @@ export default class ui {
 	    
 	})
 	
-	//render the app 
-	util.app_render(app_el)
+	//here we will resolve the container 
+	if ( typeof container == 'string' )  { 
+	    container = document.getElementById(container) 
+	}  // if not for now assume it is the element 
+	
+	//render the 
+	app_render(container,app_el)
 
     } 
 
@@ -251,3 +261,20 @@ export default class ui {
 
 
 
+
+var app_el =  null 
+
+var app_clear = function() { 
+    while (app_el.firstChild) {
+	app_el.removeChild(app_el.firstChild)  
+    }   
+}
+
+var app_render = function(container,el) { 
+    if (app_el) { 
+	app_clear() 
+    } else { 
+	container.appendChild(el)
+	app_el = container
+    }
+}

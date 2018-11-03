@@ -47,6 +47,16 @@ You can only visualize a sensor which has been ADDED to the state machine. If yo
 Things to be aware of
 ---------------------
 [ ] It is cool that the css can be directly imported into the JS bundle, but must be careful since the css affects global document objects !  -- future versions should alleviate this error source 
-		
+
+[ ] Must be careful about assigning sensor levels ! The order that sensors are evaluated in makes a big difference ! 
 
 
+
+
+Last Skipped 
+------------
+
+A key aspect of modularity is to allow sensors to derive their values from other sensors. 
+Another aspect is to allow for filtering of data streams. This means that some sensors may 
+have new data each iteration, while others may choose to ignore that data packet. 
+If a sensor chooses to ignore a data packet but there is another sensor which relies on it, then the other sensor should be able to also ignore that data packet. This is implemented using -- this.sensors[d]["last_skipped"] , as well as the get_sensor_last** fxns in the state_machine core module. 

@@ -20,6 +20,7 @@ export default class data_storage {
 	this.part_counter = 1 
 	this.save_interval_id = null 
 	this.loaded_session = null 
+	this.playback_speed_multiplier = 1
 	
 	this.log = makeLogger("DS")
 	this.default_handler = function(data) { 
@@ -92,10 +93,12 @@ export default class data_storage {
     /** 
      * Start streaming the session that was previously loaded from localStorage 
      */
-    start_stream() { 
+    start_stream(speed) { 
 	this.stream_index =  0 
 	this.streaming = true 
+	this.playback_speed_multiplier = speed || 1 
 	this.start_stream_loop() 
+
     } 
     
     /** 
@@ -142,7 +145,8 @@ export default class data_storage {
 		//increment the stream_index 
 		this.stream_index += 1 
 		//schedule the loop again 
-		setTimeout( (function() {this.start_stream_loop()}).bind(this) , delay)
+		var mod =  this.playback_speed_multiplier 
+		setTimeout( (function() {this.start_stream_loop()}).bind(this) , delay*mod)
 	    }
 	    
 	}

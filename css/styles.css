@@ -9,34 +9,7 @@ body {
     font-family : 'PT Sans', 'Do Hyeon', "Courier New", Courier, monospace
 }
        
-.flex-container {
-  display: flex;
-  flex-wrap: wrap;
 
-}
-
-.flex-row {
-  display: flex;
-  flex-wrap: nowrap;
-  flex-direction: row;
-  flex-grow : 1 ;
-}
-
-
-.flex-column {
-    display: flex;
-    flex-wrap: nowrap;
-    flex-direction: column;
-}
-
-
-.flex-row > div {
-  text-align: center;
-  flex-grow : 1 ; 
-  margin : 3px
-	       
-		  
-}
 
 
 hr {
