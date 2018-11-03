@@ -1,0 +1,563 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Modules &mdash; RoseGait  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Server Implementation" href="server_implementation.html" />
+    <link rel="prev" title="Introduction" href="introduction.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> RoseGait
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#web-socket">Web Socket</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pipe-manager">Pipe Manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raw-analyzer">Raw Analyzer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-storage">Data Storage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#state-machine">State Machine</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#sensors">Sensors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#performance">Performance</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#gait-trainer">Gait Trainer</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="server_implementation.html">Server Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">RoseGait</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Modules</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/modules.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="modules">
+<span id="id1"></span><h1>Modules<a class="headerlink" href="#modules" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="web-socket">
+<span id="id2"></span><h2>Web Socket<a class="headerlink" href="#web-socket" title="Permalink to this headline">¶</a></h2>
+<p>Defined in <code class="file docutils literal notranslate"><span class="pre">web_socket.js</span></code> and consists of a javascript class which handles accessing an incoming raw data stream.</p>
+<dl class="class">
+<dt id="web_socket">
+<em class="property">class </em><code class="descname">web_socket</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="headerlink" href="#web_socket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manages the websocket connection to an incoming data stream.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>url</strong> (<em>String</em>) – The websocket url to connect to, e.g. ws://localhost:1234</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="function">
+<dt id="web_socket.connect">
+<code class="descclassname">web_socket.</code><code class="descname">connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#web_socket.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to remote websocket server. Upon success, registers the websocket connection
+as “client” with the server, enables streaming, and this.logs to console.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="web_socket.send_json">
+<code class="descclassname">web_socket.</code><code class="descname">send_json</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#web_socket.send_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends JSON data through socket.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>obj</strong> (<em>Object</em>) – Data object to send</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="web_socket.set_data_handler">
+<code class="descclassname">web_socket.</code><code class="descname">set_data_handler</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="headerlink" href="#web_socket.set_data_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the data_handler attribute, which determines what the socket does to incomin data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>func</strong> (<em>function</em>) – Function which accepts ONE raw data object {..} and processes it.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="web_socket.start_stream">
+<code class="descclassname">web_socket.</code><code class="descname">start_stream</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#web_socket.start_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start accepting incoming raw data objects.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="web_socket.stop_stream">
+<code class="descclassname">web_socket.</code><code class="descname">stop_stream</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#web_socket.stop_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop accepting incoming raw data objects.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="pipe-manager">
+<span id="id3"></span><h2>Pipe Manager<a class="headerlink" href="#pipe-manager" title="Permalink to this headline">¶</a></h2>
+<p>Defined in <code class="file docutils literal notranslate"><span class="pre">pipe_manager.js</span></code>.</p>
+<dl class="class">
+<dt id="pipe_manager">
+<em class="property">class </em><code class="descname">pipe_manager</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pipe_manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manages the flow of streaming data between various modules of RoseGait
+e.g. pipe_manager.connect(web_socket, data_storage)</p>
+<dl class="function">
+<dt id="pipe_manager.connect">
+<code class="descclassname">pipe_manager.</code><code class="descname">connect</code><span class="sig-paren">(</span><em>from</em>, <em>to</em><span class="sig-paren">)</span><a class="headerlink" href="#pipe_manager.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects a streaming output data source to a streaming input source.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>from</strong> (<em>Object</em>) – data source (emits data). Must implement method <cite>set_data_handler</cite> and have member default_handler</li>
+<li><strong>to</strong> (<em>Object</em>) – data sink   (consumes data). Must implement method <cite>process_data</cite></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipe_manager.disconnect">
+<code class="descclassname">pipe_manager.</code><code class="descname">disconnect</code><span class="sig-paren">(</span><em>from</em>, <em>to</em><span class="sig-paren">)</span><a class="headerlink" href="#pipe_manager.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disconnects a streaming output data source from a streaming input source.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>from</strong> (<em>Object</em>) – data source (emits data). Must implement method <cite>set_data_handler</cite> and have member default_handler</li>
+<li><strong>to</strong> (<em>Object</em>) – data sink   (consumes data). Must implement method <cite>process_data</cite></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="raw-analyzer">
+<span id="id4"></span><h2>Raw Analyzer<a class="headerlink" href="#raw-analyzer" title="Permalink to this headline">¶</a></h2>
+<p>Defined in <code class="file docutils literal notranslate"><span class="pre">raw_analyzer.js</span></code>.</p>
+<dl class="class">
+<dt id="raw_analyzer">
+<em class="property">class </em><code class="descname">raw_analyzer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#raw_analyzer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides insights and attributes about raw data stream.
+e.g. checks for dropped samples</p>
+<dl class="function">
+<dt id="raw_analyzer.process_data">
+<code class="descclassname">raw_analyzer.</code><code class="descname">process_data</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#raw_analyzer.process_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes a data packet</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>obj</strong> (<em>Object</em>) – Data object to process</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="raw_analyzer.produce_report">
+<code class="descclassname">raw_analyzer.</code><code class="descname">produce_report</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#raw_analyzer.produce_report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce report (logged to console for now)</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="data-storage">
+<span id="id5"></span><h2>Data Storage<a class="headerlink" href="#data-storage" title="Permalink to this headline">¶</a></h2>
+<p>Defined in <code class="file docutils literal notranslate"><span class="pre">data_storage.js</span></code>.</p>
+<dl class="class">
+<dt id="data_storage">
+<em class="property">class </em><code class="descname">data_storage</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#data_storage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manages data persistence and replay/simulation. Uses browser based local storage.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>String</em>) – Session identifier, use null for default time string</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="function">
+<dt id="data_storage.flush_data">
+<code class="descclassname">data_storage.</code><code class="descname">flush_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.flush_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Persists a chunk of data to localStorage. Uses session name + part_number as identifier</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.load_session">
+<code class="descclassname">data_storage.</code><code class="descname">load_session</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.load_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a data storage session from localStorage. Returns Array.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.process_data">
+<code class="descclassname">data_storage.</code><code class="descname">process_data</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.process_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main data handler. Will append the incoming data to the data_history array</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>obj</strong> (<em>Object</em>) – The data obj to add</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.set_data_handler">
+<code class="descclassname">data_storage.</code><code class="descname">set_data_handler</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.set_data_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the data_handler for data replay/simulation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>f</strong> (<em>function</em>) – The data handler function</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.start_saving">
+<code class="descclassname">data_storage.</code><code class="descname">start_saving</code><span class="sig-paren">(</span><em>rate</em><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.start_saving" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start saving data to localStorage. Data is saved in chunks called ‘parts’.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>rate</strong> (<em>Number</em>) – The rate to flush data to localStorage in SECONDS</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.start_stream">
+<code class="descclassname">data_storage.</code><code class="descname">start_stream</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.start_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start streaming the session that was previously loaded from localStorage</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.stop_saving">
+<code class="descclassname">data_storage.</code><code class="descname">stop_saving</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.stop_saving" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop saving data to localStorage</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.stop_stream">
+<code class="descclassname">data_storage.</code><code class="descname">stop_stream</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.stop_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop streaming the session that was previously loaded from localStorage</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="state-machine">
+<span id="state-machine-utils"></span><h2>State Machine<a class="headerlink" href="#state-machine" title="Permalink to this headline">¶</a></h2>
+<p>Defined in <code class="file docutils literal notranslate"><span class="pre">state_machine.js</span></code>. This class encapsulates functionality for configuration and implementation of a state machine detection detection system.</p>
+<p>Broadly, the architecture consists of a <cite>buffer</cite> which holds the last <cite>buffer_size</cite> streaming values received. Each time a new data packet is received it is appended to the buffer and the oldest value is dropped.</p>
+<p>Below are definitions of key components of the architecture:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="78%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Component</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Sensor</td>
+<td>A function which takes  a <cite>buffer</cite> and returns scalar (plottable) value.</td>
+</tr>
+<tr class="row-odd"><td>Detector</td>
+<td>A function which takes a <cite>buffer</cite> and returns a boolean.</td>
+</tr>
+<tr class="row-even"><td>Applicator</td>
+<td>A function which modifies the state of the state machine in a particular way</td>
+</tr>
+<tr class="row-odd"><td>Transitioner</td>
+<td>A dictionary that consists of a paired <cite>detector</cite> and <cite>applicator</cite></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="sensors">
+<h3>Sensors<a class="headerlink" href="#sensors" title="Permalink to this headline">¶</a></h3>
+<p>Sensors enable three important features:</p>
+<ul class="simple">
+<li>Computation of derived data values in realtime</li>
+<li>Use of said values to easily create Detectors by combining a Sensor and a comparison operation</li>
+<li>Declarative style specification of graphing derived values in realtime (i.e specify which Sensors should be graphed)</li>
+</ul>
+<p>For example, a Sensor which calculates the diff of an incoming signal would look like the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">derivative</span><span class="p">(</span><span class="n">buffer</span><span class="p">)</span> <span class="p">{</span>
+   <span class="n">var</span> <span class="nb">len</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">length</span>
+   <span class="k">return</span> <span class="n">buffer</span><span class="p">[</span><span class="nb">len</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">buffer</span><span class="p">[</span><span class="nb">len</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>   <span class="o">//</span><span class="n">returns</span> <span class="n">the</span> <span class="n">diff</span> <span class="n">of</span> <span class="n">the</span> <span class="n">last</span> <span class="n">two</span> <span class="n">values</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="performance">
+<h3>Performance<a class="headerlink" href="#performance" title="Permalink to this headline">¶</a></h3>
+<p>The limiting factor for application perfomance is the web_socket data stream sample rate. The <a class="reference external" href="https://getmuvr.com/">Muvr</a> prototype currently streams at 50hz, or one sample approximately every 20ms.</p>
+<p>One <cite>cycle</cite> of the state machine consists of:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">1.</span> <span class="n">Receipt</span> <span class="n">of</span> <span class="n">new</span> <span class="n">data</span> <span class="n">packet</span>
+<span class="mf">2.</span> <span class="n">Update</span> <span class="n">of</span> <span class="n">buffer</span>
+<span class="mf">3.</span> <span class="n">Calculation</span> <span class="ow">and</span> <span class="n">update</span> <span class="n">of</span> <span class="nb">all</span> <span class="n">defined</span> <span class="n">Sensors</span>
+<span class="mf">4.</span> <span class="n">Sequential</span> <span class="n">application</span> <span class="n">of</span> <span class="nb">all</span> <span class="n">Transitioners</span>
+</pre></div>
+</div>
+<p>In addition, the UI, including realtime streaming graphs, must be updated within this time window of 20ms as well before a new sample arrives.</p>
+<p>Considering the above, we have the following simple formula to ensure proper realtime performance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">state_machine_cycle_time</span> <span class="o">+</span> <span class="n">ui_update_time</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="n">ms</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="gait-trainer">
+<span id="id6"></span><h2>Gait Trainer<a class="headerlink" href="#gait-trainer" title="Permalink to this headline">¶</a></h2>
+<p>Defined in <code class="file docutils literal notranslate"><span class="pre">gait_trainer.js</span></code>.</p>
+<dl class="class">
+<dt id="gait_trainer">
+<em class="property">class </em><code class="descname">gait_trainer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gait_trainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configures state machine for gait training session</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="server_implementation.html" class="btn btn-neutral float-right" title="Server Implementation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="introduction.html" class="btn btn-neutral" title="Introduction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Sheun Aluko.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
