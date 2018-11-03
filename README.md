@@ -1,5 +1,8 @@
 # webrt_state_machine
-Welcome to the Web Realtime State Machine, or WRTSM. WRTSM is a javascript library built by motion analysis researchers at Stanford University for protyping and implementing real time detection and feedback systems. Data is piped in realtime via websockets into a configurable state machine, which allows visualization of both raw and derived data features. Both raw data and derived features trigger state transitions through arbitrarily defined "detectors" and "applicators", which allows for the implementation of various feedback and detection systems. Check out the documentation for more information, or quickly get started by following the instructions below. 
+Web Realtime State Machine, or WRTSM, is a javascript library built for protyping and implementing real time detection and feedback systems. 
+Data is piped in realtime via websockets into a configurable state machine, which allows visualization of both raw and derived data features. 
+Both raw data and derived features trigger state transitions through arbitrarily defined "detectors" and "applicators", which allows for the implementation of various feedback and detection systems. 
+Check out the documentation for more information, or get started below !
 
 ![](wrtsm.gif)
 
