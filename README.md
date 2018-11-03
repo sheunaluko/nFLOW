@@ -9,11 +9,11 @@ Check out the documentation for more information, or get started below !
 
 ## Getting Started 
 
-All you have to do is include the wrtsm.js file in your html, and tell wrtsm which DOM node you would like to render the UI too. Here is the barebones HTML example to get you started: 
+Simply include the wrtsm.js file in your html, and tell wrtsm which DOM node you would like to render the UI too. Here is a barebones HTML example to get you started: 
 ```html
 <html>
 <head>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/sheunaluko/webrt_state_machine@v0.1-alpha/dist/index.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/sheunaluko/webrt_state_machine@v0.1-alpha/dist/wrtsm.js"></script>
 </head>
 
 <body>
@@ -32,7 +32,8 @@ All you have to do is include the wrtsm.js file in your html, and tell wrtsm whi
 
 </html>
 ```
- 
-Note the div element with ID 'wrtsm'  - this is where the UI will be rendered. Also note the cdn loaded script in the head section of the html, which loads the wrtsm module into your page. Finally, the inline script waits for the wrtsm_ready event and then loads an demo real time graph. 
-
+There are three important things to note: 
+1. The wrtsm.js library is loaded via the script tag inside <head>, and triggers the event "wrtsm_ready" 
+2. The <div id="wrtsm"> tag creates a container for the UI to be rendered into 
+3. The inline <script> listens for the "wrtsm_ready" event and triggers the demo 
 
