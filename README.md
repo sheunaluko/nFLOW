@@ -13,7 +13,7 @@ Simply include the `wrtsm.js` file in your html, and tell wrtsm which DOM node y
 ```html
 <html>
 <head>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/sheunaluko/webrt_state_machine@v0.1-alpha/dist/wrtsm.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/sheunaluko/webrt_state_machine@v0.2-alpha/dist/wrtsm.js"></script>
 </head>
 
 <body>
