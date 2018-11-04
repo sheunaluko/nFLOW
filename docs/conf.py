@@ -19,7 +19,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'RoseGait'
+project = 'WRTSM'
 copyright = '2018, Sheun Aluko'
 author = 'Sheun Aluko'
 

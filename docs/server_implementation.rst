@@ -16,11 +16,11 @@ Below is a table describing the appropriate server responses to various messages
 ==========  =======  ======================================
 Msg Type    Data     Server Response
 ==========  =======  ======================================
-Control     Start    Starts forwarding data packets 
-Control     Stop     Stops  forwarding data packets 
+Control     start    Starts forwarding data packets 
+Control     stop     Stops  forwarding data packets 
 Register    ID       Saves CLIENT connection for forwarding 
 ==========  =======  ======================================
 
-Currently, the websocket server is implemented in :file:`websocket_server.js`, and run via nodejs. It accepts two incoming connections, one from the Muvr device to obtain the raw data, and the other from the client to which it will forward data. In order to distinguish the two a registration is performed by the browser (i.e. client) after it connects. When the server receives a data packet it can relay it to the client using the registered connection.
+Currently, the websocket server is implemented in :file:`websocket_server.js`, and run via nodejs. It accepts two incoming connections, one from an arbitraty input to obtain the raw data, and the other from the client to which it will forward data. In order to distinguish the two a registration is performed by the browser (i.e. client) after it connects. When the server receives a data packet it can relay it to the client using the registered connection.
 
 This architecture may be updated in the future, as the nature of the data source and development requirements change. Stay tuned! 

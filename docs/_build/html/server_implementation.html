@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Server Implementation &mdash; RoseGait  documentation</title>
+  <title>Server Implementation &mdash; WRTSM  documentation</title>
   
 
   
@@ -48,7 +48,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> RoseGait
+            <a href="index.html" class="icon icon-home"> WRTSM
           
 
           
@@ -98,7 +98,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">RoseGait</a>
+          <a href="index.html">WRTSM</a>
         
       </nav>
 
@@ -169,11 +169,11 @@
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>Control</td>
-<td>Start</td>
+<td>start</td>
 <td>Starts forwarding data packets</td>
 </tr>
 <tr class="row-odd"><td>Control</td>
-<td>Stop</td>
+<td>stop</td>
 <td>Stops  forwarding data packets</td>
 </tr>
 <tr class="row-even"><td>Register</td>
@@ -182,7 +182,7 @@
 </tr>
 </tbody>
 </table>
-<p>Currently, the websocket server is implemented in <code class="file docutils literal notranslate"><span class="pre">websocket_server.js</span></code>, and run via nodejs. It accepts two incoming connections, one from the Muvr device to obtain the raw data, and the other from the client to which it will forward data. In order to distinguish the two a registration is performed by the browser (i.e. client) after it connects. When the server receives a data packet it can relay it to the client using the registered connection.</p>
+<p>Currently, the websocket server is implemented in <code class="file docutils literal notranslate"><span class="pre">websocket_server.js</span></code>, and run via nodejs. It accepts two incoming connections, one from an arbitraty input to obtain the raw data, and the other from the client to which it will forward data. In order to distinguish the two a registration is performed by the browser (i.e. client) after it connects. When the server receives a data packet it can relay it to the client using the registered connection.</p>
 <p>This architecture may be updated in the future, as the nature of the data source and development requirements change. Stay tuned!</p>
 </div>
 
@@ -206,7 +206,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Sheun Aluko.
+        &copy; Copyright 2018, Sheun Aluko
 
     </p>
   </div>
@@ -225,21 +225,14 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Modules &mdash; RoseGait  documentation</title>
+  <title>Modules &mdash; WRTSM  documentation</title>
   
 
   
@@ -48,7 +48,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> RoseGait
+            <a href="index.html" class="icon icon-home"> WRTSM
           
 
           
@@ -88,10 +88,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#data-storage">Data Storage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#state-machine">State Machine</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#sensors">Sensors</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#performance">Performance</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#gait-trainer">Gait Trainer</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="server_implementation.html">Server Implementation</a></li>
@@ -110,7 +108,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">RoseGait</a>
+          <a href="index.html">WRTSM</a>
         
       </nav>
 
@@ -292,6 +290,18 @@ e.g. pipe_manager.connect(web_socket, data_storage)</p>
 <dd><p>Provides insights and attributes about raw data stream.
 e.g. checks for dropped samples</p>
 <dl class="function">
+<dt id="raw_analyzer.dist_field">
+<code class="descclassname">raw_analyzer.</code><code class="descname">dist_field</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#raw_analyzer.dist_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>(UNSTABLE ) Show ditribution for field</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="raw_analyzer.line_field">
+<code class="descclassname">raw_analyzer.</code><code class="descname">line_field</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#raw_analyzer.line_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>(UNSTABLE) Show time series for field</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="raw_analyzer.process_data">
 <code class="descclassname">raw_analyzer.</code><code class="descname">process_data</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#raw_analyzer.process_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Processes a data packet</p>
@@ -339,6 +349,12 @@ e.g. checks for dropped samples</p>
 <dt id="data_storage.flush_data">
 <code class="descclassname">data_storage.</code><code class="descname">flush_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.flush_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Persists a chunk of data to localStorage. Uses session name + part_number as identifier</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.load_json">
+<code class="descclassname">data_storage.</code><code class="descname">load_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.load_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads json data into local storage</p>
 </dd></dl>
 
 <dl class="function">
@@ -400,8 +416,14 @@ e.g. checks for dropped samples</p>
 
 <dl class="function">
 <dt id="data_storage.start_stream">
-<code class="descclassname">data_storage.</code><code class="descname">start_stream</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.start_stream" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">data_storage.</code><code class="descname">start_stream</code><span class="sig-paren">(</span><em>speed</em><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.start_stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Start streaming the session that was previously loaded from localStorage</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.start_stream_loop">
+<code class="descclassname">data_storage.</code><code class="descname">start_stream_loop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.start_stream_loop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function for start_stream()</p>
 </dd></dl>
 
 <dl class="function">
@@ -416,18 +438,42 @@ e.g. checks for dropped samples</p>
 <dd><p>Stop streaming the session that was previously loaded from localStorage</p>
 </dd></dl>
 
+<dl class="function">
+<dt id="data_storage.stream_single_packet">
+<code class="descclassname">data_storage.</code><code class="descname">stream_single_packet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.stream_single_packet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stream single packet</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.to_csv">
+<code class="descclassname">data_storage.</code><code class="descname">to_csv</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.to_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes csv string from this.loaded_session</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.to_json">
+<code class="descclassname">data_storage.</code><code class="descname">to_json</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.to_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes and downloads json string from this.loaded_session</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.zero_time_axis">
+<code class="descclassname">data_storage.</code><code class="descname">zero_time_axis</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.zero_time_axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Zero the time axis of the data session</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
 <div class="section" id="state-machine">
 <span id="state-machine-utils"></span><h2>State Machine<a class="headerlink" href="#state-machine" title="Permalink to this headline">¶</a></h2>
-<p>Defined in <code class="file docutils literal notranslate"><span class="pre">state_machine.js</span></code>. This class encapsulates functionality for configuration and implementation of a state machine detection detection system.</p>
+<p>Defined in <code class="file docutils literal notranslate"><span class="pre">state_machine.js</span></code>. This class encapsulates functionality for configuration and implementation of a state machine detection system.</p>
 <p>Broadly, the architecture consists of a <cite>buffer</cite> which holds the last <cite>buffer_size</cite> streaming values received. Each time a new data packet is received it is appended to the buffer and the oldest value is dropped.</p>
 <p>Below are definitions of key components of the architecture:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="22%" />
-<col width="78%" />
+<col width="19%" />
+<col width="81%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Component</th>
@@ -436,13 +482,13 @@ e.g. checks for dropped samples</p>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>Sensor</td>
-<td>A function which takes  a <cite>buffer</cite> and returns scalar (plottable) value.</td>
+<td>A function which takes  a <cite>state_machine</cite> and returns a scalar (plottable) value OR false</td>
 </tr>
 <tr class="row-odd"><td>Detector</td>
-<td>A function which takes a <cite>buffer</cite> and returns a boolean.</td>
+<td>A function which takes a <cite>state_machine</cite> and returns a boolean.</td>
 </tr>
 <tr class="row-even"><td>Applicator</td>
-<td>A function which modifies the state of the state machine in a particular way</td>
+<td>A function which takes a  <cite>state_machine</cite>  and modifies its state in a particular way</td>
 </tr>
 <tr class="row-odd"><td>Transitioner</td>
 <td>A dictionary that consists of a paired <cite>detector</cite> and <cite>applicator</cite></td>
@@ -457,40 +503,20 @@ e.g. checks for dropped samples</p>
 <li>Use of said values to easily create Detectors by combining a Sensor and a comparison operation</li>
 <li>Declarative style specification of graphing derived values in realtime (i.e specify which Sensors should be graphed)</li>
 </ul>
-<p>For example, a Sensor which calculates the diff of an incoming signal would look like the following:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">derivative</span><span class="p">(</span><span class="n">buffer</span><span class="p">)</span> <span class="p">{</span>
+<p>For example, a Sensor which calculates the diff of an incoming voltage signal would look like the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">diff</span><span class="p">(</span><span class="n">state_machine</span><span class="p">)</span> <span class="p">{</span>
+   <span class="n">var</span> <span class="n">buffer</span> <span class="o">=</span> <span class="n">state_machine</span><span class="o">.</span><span class="n">buffer</span>
    <span class="n">var</span> <span class="nb">len</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">length</span>
-   <span class="k">return</span> <span class="n">buffer</span><span class="p">[</span><span class="nb">len</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">buffer</span><span class="p">[</span><span class="nb">len</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>   <span class="o">//</span><span class="n">returns</span> <span class="n">the</span> <span class="n">diff</span> <span class="n">of</span> <span class="n">the</span> <span class="n">last</span> <span class="n">two</span> <span class="n">values</span>
+
+   <span class="o">//</span><span class="ow">in</span> <span class="n">general</span><span class="p">,</span> <span class="n">the</span> <span class="n">buffer</span> <span class="n">consists</span> <span class="n">of</span> <span class="n">data</span> <span class="n">objects</span><span class="p">,</span> <span class="n">which</span> <span class="n">have</span> <span class="n">fields</span> <span class="n">of</span> <span class="n">interest</span>
+   <span class="o">//</span><span class="k">for</span> <span class="n">example</span><span class="p">,</span> <span class="k">if</span> <span class="n">we</span> <span class="n">are</span> <span class="n">interested</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">voltage</span> <span class="n">measurement</span> <span class="k">for</span> <span class="n">each</span> <span class="n">data</span> <span class="n">packet</span><span class="o">...</span>
+   <span class="n">var</span> <span class="n">voltages</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">map</span><span class="p">(</span> <span class="n">e</span> <span class="o">=&gt;</span> <span class="n">e</span><span class="p">[</span><span class="s1">&#39;voltage&#39;</span><span class="p">]</span> <span class="p">)</span>
+
+   <span class="k">return</span> <span class="n">voltages</span><span class="p">[</span><span class="nb">len</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">voltages</span><span class="p">[</span><span class="nb">len</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>   <span class="o">//</span><span class="n">returns</span> <span class="n">the</span> <span class="n">diff</span> <span class="n">of</span> <span class="n">the</span> <span class="n">last</span> <span class="n">two</span> <span class="n">values</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="performance">
-<h3>Performance<a class="headerlink" href="#performance" title="Permalink to this headline">¶</a></h3>
-<p>The limiting factor for application perfomance is the web_socket data stream sample rate. The <a class="reference external" href="https://getmuvr.com/">Muvr</a> prototype currently streams at 50hz, or one sample approximately every 20ms.</p>
-<p>One <cite>cycle</cite> of the state machine consists of:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">1.</span> <span class="n">Receipt</span> <span class="n">of</span> <span class="n">new</span> <span class="n">data</span> <span class="n">packet</span>
-<span class="mf">2.</span> <span class="n">Update</span> <span class="n">of</span> <span class="n">buffer</span>
-<span class="mf">3.</span> <span class="n">Calculation</span> <span class="ow">and</span> <span class="n">update</span> <span class="n">of</span> <span class="nb">all</span> <span class="n">defined</span> <span class="n">Sensors</span>
-<span class="mf">4.</span> <span class="n">Sequential</span> <span class="n">application</span> <span class="n">of</span> <span class="nb">all</span> <span class="n">Transitioners</span>
-</pre></div>
-</div>
-<p>In addition, the UI, including realtime streaming graphs, must be updated within this time window of 20ms as well before a new sample arrives.</p>
-<p>Considering the above, we have the following simple formula to ensure proper realtime performance:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">state_machine_cycle_time</span> <span class="o">+</span> <span class="n">ui_update_time</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="n">ms</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="section" id="gait-trainer">
-<span id="id6"></span><h2>Gait Trainer<a class="headerlink" href="#gait-trainer" title="Permalink to this headline">¶</a></h2>
-<p>Defined in <code class="file docutils literal notranslate"><span class="pre">gait_trainer.js</span></code>.</p>
-<dl class="class">
-<dt id="gait_trainer">
-<em class="property">class </em><code class="descname">gait_trainer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gait_trainer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Configures state machine for gait training session</p>
-</dd></dl>
-
 </div>
 </div>
 
@@ -514,7 +540,7 @@ e.g. checks for dropped samples</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Sheun Aluko.
+        &copy; Copyright 2018, Sheun Aluko
 
     </p>
   </div>
@@ -533,21 +559,14 @@ e.g. checks for dropped samples</p>
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 

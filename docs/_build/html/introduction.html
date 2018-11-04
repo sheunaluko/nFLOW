@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Introduction &mdash; RoseGait  documentation</title>
+  <title>Introduction &mdash; WRTSM  documentation</title>
   
 
   
@@ -29,7 +29,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Modules" href="modules.html" />
-    <link rel="prev" title="Welcome to RoseGait’s documentation!" href="index.html" /> 
+    <link rel="prev" title="Welcome to WRTSM’s documentation!" href="index.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -48,7 +48,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> RoseGait
+            <a href="index.html" class="icon icon-home"> WRTSM
           
 
           
@@ -81,7 +81,7 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#what-is-rosegait">What is RoseGait?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-wrtsm">What is WRTSM?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#software-architecture">Software Architecture</a></li>
 </ul>
 </li>
@@ -102,7 +102,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">RoseGait</a>
+          <a href="index.html">WRTSM</a>
         
       </nav>
 
@@ -154,18 +154,18 @@
             
   <div class="section" id="introduction">
 <span id="introduction-page"></span><h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="what-is-rosegait">
-<span id="explainer"></span><h2>What is RoseGait?<a class="headerlink" href="#what-is-rosegait" title="Permalink to this headline">¶</a></h2>
-<p>RoseGait is a browser based software suite for developing and deploying real time <cite>gait training</cite> systems. It is being developed by Dr. Jessica Rose, the Director of <a class="reference external" href="https://www.stanfordchildrens.org/en/service/motion-gait-analysis-laboratory">Stanford’s Motion and Gait Analysis Laboratory</a>, in collaboration with <a class="reference external" href="https://getmuvr.com/">Muvr</a>.</p>
+<div class="section" id="what-is-wrtsm">
+<span id="explainer"></span><h2>What is WRTSM?<a class="headerlink" href="#what-is-wrtsm" title="Permalink to this headline">¶</a></h2>
+<p>Web Realtime State Machine, or WRTSM, is a javascript library built for protyping and implementing real time detection and feedback systems. Data is piped in realtime via websockets into a configurable state machine, which allows visualization of both raw and derived data features. Both raw data and derived features trigger state transitions through arbitrarily defined “detectors” and “applicators”, which allows for the implementation of various feedback and detection systems.</p>
 </div>
 <div class="section" id="software-architecture">
 <span id="architecture"></span><h2>Software Architecture<a class="headerlink" href="#software-architecture" title="Permalink to this headline">¶</a></h2>
-<p>Broadly, RoseGait consists of the following submodules:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">web_socket</span>   <span class="p">(</span><span class="n">establishes</span> <span class="ow">and</span> <span class="n">manages</span> <span class="n">connection</span> <span class="n">to</span> <span class="n">raw</span> <span class="n">data</span> <span class="n">stream</span><span class="p">)</span>
-<span class="n">pipe_manager</span> <span class="p">(</span><span class="n">controls</span> <span class="n">flow</span> <span class="n">of</span> <span class="n">data</span> <span class="n">stream</span> <span class="n">between</span> <span class="n">modules</span><span class="p">)</span>
-<span class="n">raw_analyzer</span> <span class="p">(</span><span class="n">validates</span> <span class="n">data</span> <span class="n">stream</span> <span class="n">integrity</span> <span class="ow">and</span> <span class="n">generates</span> <span class="n">statistics</span><span class="p">)</span>
-<span class="n">data_storage</span> <span class="p">(</span><span class="n">implements</span> <span class="n">data</span> <span class="n">persistence</span><span class="p">,</span> <span class="n">replay</span><span class="p">,</span> <span class="ow">and</span> <span class="n">download</span><span class="p">)</span>
-<span class="n">gait_trainer</span> <span class="p">(</span><span class="n">implements</span> <span class="n">gait</span> <span class="n">event</span> <span class="n">detection</span> <span class="ow">and</span> <span class="n">feedback</span><span class="p">)</span>
+<p>Broadly, WRTSM consists of the following submodules:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">web_socket</span>    <span class="p">(</span><span class="n">establishes</span> <span class="ow">and</span> <span class="n">manages</span> <span class="n">connection</span> <span class="n">to</span> <span class="n">raw</span> <span class="n">data</span> <span class="n">stream</span><span class="p">)</span>
+<span class="n">pipe_manager</span>  <span class="p">(</span><span class="n">controls</span> <span class="n">flow</span> <span class="n">of</span> <span class="n">data</span> <span class="n">stream</span> <span class="n">between</span> <span class="n">modules</span><span class="p">)</span>
+<span class="n">raw_analyzer</span>  <span class="p">(</span><span class="n">validates</span> <span class="n">data</span> <span class="n">stream</span> <span class="n">integrity</span> <span class="ow">and</span> <span class="n">generates</span> <span class="n">statistics</span><span class="p">)</span>
+<span class="n">data_storage</span>  <span class="p">(</span><span class="n">implements</span> <span class="n">data</span> <span class="n">persistence</span><span class="p">,</span> <span class="n">replay</span><span class="p">,</span> <span class="ow">and</span> <span class="n">download</span><span class="p">)</span>
+<span class="n">state_machine</span> <span class="p">(</span><span class="n">prototypes</span> <span class="ow">and</span> <span class="n">implments</span> <span class="n">realtime</span> <span class="n">detection</span> <span class="ow">or</span> <span class="n">feedback</span> <span class="n">systems</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Use the navigation bar to the left to learn more about each of these components, or proceed to <a class="reference internal" href="getting_started.html"><span class="doc">Getting started</span></a>.</p>
@@ -183,7 +183,7 @@
         <a href="modules.html" class="btn btn-neutral float-right" title="Modules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="Welcome to RoseGait’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="Welcome to WRTSM’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -192,7 +192,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Sheun Aluko.
+        &copy; Copyright 2018, Sheun Aluko
 
     </p>
   </div>
@@ -211,21 +211,14 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
