@@ -32,8 +32,13 @@ Simply include the `wrtsm.js` file in your html, and tell wrtsm which DOM node y
 
 </html>
 ```
+
+You should see the following, which is a graph of two sine waves being plotted in real time, with a state machine proccessing every data packet.
+
+![](wrtsm_2.gif)
+
 There are three important things to note: 
 1. The `wrtsm.js` library is loaded via the script tag inside `<head>`, and triggers the event "wrtsm_ready" when loaded
 2. The `<div id="wrtsm">` tag creates a container for the UI to be rendered into (the demo is set to automatically detect the "wrtsm" id)
-3. The inline `<script>` listens for the "wrtsm_ready" event and triggers the demo 
+3. The inline `<script>` listens for the window "wrtsm_ready" event and triggers the demo 
 
