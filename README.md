@@ -38,11 +38,11 @@ There are three important things to note:
 2. The `<div id="wrtsm">` tag creates a container for the UI to be rendered into (the demo is set to automatically detect the "wrtsm" id)
 3. The inline `<script>` listens for the window "wrtsm_ready" event and triggers the demo 
 
-When you open this html page in your browser of choice (I have tested on latest versions of Google Chrome), you should a graph of two sine waves being plotted in real time, with a state machine proccessing every data packet as it arrives: 
+This is what you will see when you open this html page in your web browser: 
 
 ![](wrtsm_2.gif)
 
-Check out the documentation to learn more about wrtms architecture, or check out rosegait to get started with using 
+If is a graph of two sine waves being plotted in real time, with a state machine proccessing every data packet as it arrives. Check out the documentation to learn more about wrtms architecture, or check out the tutorial to get started with using wrtsm for prototyping realtime feedback and detection system in your browser! 
 
 
 @Copyright Sheun Aluko, 2018-2019
