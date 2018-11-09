@@ -49,7 +49,7 @@ if (window.Bokeh) {
 } 
 // HANDLE BOKEH LOADING (load the content from cdn if Bokeh is not defined in the window) ======================================== > 
 
-
+wrtsm.load_time  = (new Date()).getTime() 
 
 
 

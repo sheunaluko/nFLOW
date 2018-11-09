@@ -14,6 +14,11 @@ Then the data_storage and web_socket and .. classes can inherit from that
 
 Then I can add functionality to the base class and and all the objects will inherit this functionality. This is efficient and more elegant than adding similar functionality to each class independently, especially when that functionality involves manipulation of data structures each class has . 
 
+[nov 5 2018] 
+Can implement a  TRANSFORMER node -- which simply fowards data but applies some function F to the data 
+It can be plugged in between to other notes oto make a sort of declarative data pipe line (inspired by using the web audio 
+interface and trying to pipe it to the state machine)
+
 
 
 Improvements for version 0.3

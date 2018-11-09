@@ -19,7 +19,7 @@ export default class state_machine {
     constructor(opts) { 
 	var {buffer_size, gui_mode, debug_mode, init} = opts
 	this.log = makeLogger("SM") 
-	this.buffer_size = buffer_size 
+	this.buffer_size = buffer_size  || 200 
 	this.sensor_buffer_size = buffer_size 
 	this.buffer = Array(buffer_size).fill(default_data_obj)
 	this.sensors = {} 
@@ -78,7 +78,7 @@ export default class state_machine {
     
     /** 
      * Adds a sensor to the state machine. 
-     * @param {Object} opts - contains id, f (function) , graph (if gui_mode). Graph should be id of the graph that the sensor should be graphed on 
+     * @param {Object} opts - contains id, f (function) , level (level 0 is evaluated first , then 1, etc.. ) 
      */
     add_sensor(opts) { 
 	var id,f,l

@@ -1,0 +1,2 @@
+rm dist/*
+parcel build src/index.js -o wrtsm.js

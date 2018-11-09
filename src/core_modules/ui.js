@@ -11,6 +11,50 @@ function make_x_series(len) {
     return util.range(-len, 0).map( x => x/100 ) // the /100 is hax for now for streaming
 }
 
+function create_static_multi_line_graph(container,opts) { 
+	var { xs, ys , title  } = opts 
+	
+	//will use indeces for x arrays if not provided 
+	if (! xs ) { 
+		xs =  [] 
+		for (var i =0; i< ys.length ; i ++)  { 
+			xs.push(util.range(0, ys[0].length ) ) 
+		}
+	}
+
+	var source = new Bokeh.ColumnDataSource( {
+	data : {xs : xs, ys : ys }
+    })
+    
+    // make the plot and add some tools
+    //var tools = "pan,crosshair,wheel_zoom,box_zoom,reset,save";
+
+    // WOW ! -- how lucky to find sizing_mode : stretch_both lmao 
+    // https://github.com/bokeh/bokeh/issues/4958
+    
+    var p = Bokeh.Plotting.figure({ title: title,sizing_mode : 'stretch_both' })
+    
+    //add the multiline 
+    var glyph = p.multi_line({ field: "xs" }, { field: "ys" }, {
+		source: source,
+		line_color: util.get_colors(xs.length)
+    }) 
+    
+    var tooltips = [
+	["x"    , "$x" ]  , 
+	["y"    , "$y" ] 
+    ]
+
+    p.add_tools(new Bokeh.HoverTool({tooltips : tooltips , line_policy : "next"} ) ) 
+	
+	var el = container
+	if (typeof container == 'string') { 
+		el = document.getElementById(container)
+	}
+	while  (el.firstChild) { el.removeChild(el.firstChild)}
+	Bokeh.Plotting.show(p, el)
+    return { plot : p , glyph : glyph , source : source } 
+} 
 
 function create_multi_line_graph(opts) { 
     var { x_len, series_array, title  } = opts 
@@ -252,7 +296,11 @@ export default class ui {
 	}
 
     }
-    
+	
+	
+	static multi_line_graph(container, opts) { 
+		create_static_multi_line_graph(container, opts) 
+	}
     
     
     

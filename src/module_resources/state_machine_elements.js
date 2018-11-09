@@ -20,6 +20,7 @@ sme.sensors.field = function(field) {
     }
 } 
 
+
 //field diff will take the  diff of a particular field in the data object 
 sme.sensors.field_diff = function(field) { 
     return function(d) { 
