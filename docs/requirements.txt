@@ -1,2 +1,1 @@
-sphinx
-sphinx-js
+sphinx-js==2.5
