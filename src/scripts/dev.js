@@ -12,7 +12,7 @@ function wrtsm_init() {
     let t0 = util.now() 
 
     //define transformers 
-    let bin = new tf( function(d) { if ( d > 0 )  { return 1 } else { return - 1 } }) 
+    let bin = new tf( function(d) { if ( d > 0 )  { return 1 } else { return -1 } }) 
     let add_time = new tf (function(d) { return {val : d , time :  util.now() - t0 } })
     
     // create objects
@@ -29,12 +29,9 @@ function wrtsm_init() {
     // init gui 
     sm.init_gui("wrtsm" , { g1 : ["val" ]  } ) 
 
-    //start the stream 
-    sim.start_stream(20)
-    
-    
+    //start the stream at rate of 20ms
+    sim.start_stream(400)
     
 
 } 
-
 

@@ -9,7 +9,10 @@ import util from "../module_resources/utils.js"
  */
 export default class simulator {
     
-    constructor(mode) { 
+    constructor(opts) { 
+	
+	this.opts  = opts
+	
 	this.log = makeLogger("SIM")
 	this.mode = mode 
 	this.default_handler = function(data) { 
@@ -46,9 +49,9 @@ export default class simulator {
     
     send_val() { 
 	var val  ; 
-	switch (this.mode)  { 
+	switch (this.opts.mode)  { 
 	case 'sin' : 
-	    val  = Math.sin ( new Date().getTime() ) 
+	    val  = Math.sin ( (new Date().getTime()) * this.opts.rate )
 	    break  ; 
 	} 
 	
