@@ -42,7 +42,7 @@ This is what you will see when you open the html page in your web browser:
 
 ![](wrtsm_2.gif)
 
-It is a graph of two sine waves being plotted in real time, with a state machine proccessing every data packet as it arrives. Check out the documentation to learn more about wrtms architecture, or check out the tutorial to get started with using wrtsm for prototyping realtime feedback and detection systems in your browser! 
+It is a graph of two sine waves being plotted in real time, with a state machine proccessing every data packet as it arrives. [Check out the documentation] (https://wrtsm.readthedocs.io/en/latest/) to learn more about wrtms architecture, or check out the tutorial to get started with using wrtsm for prototyping realtime feedback and detection systems in your browser! 
 
 
 @Copyright Sheun Aluko, 2018-2019
