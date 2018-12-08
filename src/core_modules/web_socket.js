@@ -1,7 +1,7 @@
 // Sat Sep 29 18:31:15 PDT 2018
 
 import {makeLogger} from "./logger.js"
-import util from "../module_resources/utils.js"
+import {util} from "../module_resources/utils.js"
 
 /**
  * Manages the websocket connection to an incoming data stream.
@@ -19,7 +19,6 @@ export default class web_socket {
 	} 
 	this.data_handler = this.default_handler 
     } 
-    
     
     /**
      * Connect to remote websocket server. Upon success, registers the websocket connection

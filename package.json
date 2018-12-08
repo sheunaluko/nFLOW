@@ -13,5 +13,8 @@
     "cssnano": "^4.1.7",
     "htmlnano": "^0.2.0",
     "terser": "^3.10.2"
+  },
+  "dependencies": {
+    "ws": "^6.1.2"
   }
 }

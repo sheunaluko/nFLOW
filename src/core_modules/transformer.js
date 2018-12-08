@@ -1,7 +1,7 @@
 // Thu Nov  8 18:17:14 PST 2018
 
 import {makeLogger} from "./logger.js"
-import util from "../module_resources/utils.js"
+import {util} from "../module_resources/utils.js"
 
 /**
  * Applies a transformation function to a data stream 

@@ -7,8 +7,11 @@ import pipe_manager from "./core_modules/pipe_manager.js"
 import raw_analyzer from "./core_modules/raw_analyzer.js" 
 import state_machine from "./core_modules/state_machine.js" 
 import transformer from "./core_modules/transformer.js" 
+import logger_node from "./core_modules/logger_node.js" 
 import simulator from "./core_modules/simulator.js" 
 import ui from "./core_modules/ui.js" 
+import event_detector from "./core_modules/event_detector.js" 
 
-export var mods = { web_socket, data_storage , pipe_manager , raw_analyzer, state_machine, ui, transformer, simulator }
+
+export var mods = { web_socket, data_storage , pipe_manager , raw_analyzer, state_machine, ui, transformer, simulator, logger_node, event_detector }
 

@@ -14,7 +14,7 @@ export default class simulator {
 	this.opts  = opts
 	
 	this.log = makeLogger("SIM")
-	this.mode = mode 
+	this.mode = opts.mode 
 	this.default_handler = function(data) { 
 	    return null 
 	} 
@@ -53,12 +53,21 @@ export default class simulator {
 	case 'sin' : 
 	    val  = Math.sin ( (new Date().getTime()) * this.opts.rate )
 	    break  ; 
+	case 'rand' : 
+	    val = (this.opts.multiplier || 1 ) * Math.random() + (this.opts.offset || 0 ) 
+	    break ; 
+	case 'burst' : 
+	    var burst = ! ( (new Date).getSeconds() % 5  )
+	    if (true ) { 
+		val = {x :  Math.random() + 5, y : Math.random() + 3, z : Math.random() + 20}
+	    } else { 
+		val = {x :  Math.random(), y : Math.random() }
+	    }
+	    break ;
 	} 
 	
 	this.data_handler(val) 
     } 
        
-    
-    
 }
 

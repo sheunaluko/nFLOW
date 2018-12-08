@@ -25,6 +25,13 @@ interface and trying to pipe it to the state machine)
 - can configure ED to IGNORE changes in specified paths of the data object , in order to do this the specified path is overwritten as 0 in each appended data packet 
 - will first establish a baseline before attempting to extract events
 
+[ ] CREATE OBJECT ORIENTED -> CLASS FOR A WRTSM *node* so that I can update all functionalities SIMULTANEOUSLY! 
+- each node can either forward or not forward -> 
+- you can set up a chain of nodes and then call .get_single_packet  on the last node and it will 
+-- propagate back  
+- etc... 
+- each node has own pipe manager (so can call connect from itself) 
+- each node has multiple output ports? 
 
 
 

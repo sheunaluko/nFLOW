@@ -63,6 +63,11 @@ wss.on('connection', function connection(ws) {
 	    
   });
  
+  client_connection.on('close', function close() {
+      client_connection = null 
+      console.log("Client disconnected") 
+  });
+
 
     
 });
