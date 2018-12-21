@@ -51,6 +51,8 @@ flow.playback_gui = function(d, debug) {
     var ds = new wrtsm.mods.data_storage("eugene_walk_rev") 
     ds.load_session() 
     
+    
+    
     //and then create a pipe manager to connect the stored data file to the state machine 
     var pm = new wrtsm.mods.pipe_manager() 
     pm.connect(ds,sm) 
@@ -316,6 +318,7 @@ sme.transitioners.test_turn_off  = {
     } , 
     "group" : "switch" 
 }
+
 
 
 

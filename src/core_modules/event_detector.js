@@ -254,6 +254,8 @@ export default class event_detector {
     }
     
     
+    
+    
     /** 
      * Sets the data_handler attribute
      * @param {Function} func - Function which accepts ONE raw data object and processes it.
@@ -263,7 +265,7 @@ export default class event_detector {
     }
 
  
-
+    static foo() { return 10 } 
     
     
 }

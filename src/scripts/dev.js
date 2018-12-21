@@ -239,18 +239,13 @@ function dev_2() {
     //pm.connect(sim,ED).connect(ln)
     sim.start_stream() 
     //return {sim, grapher, ED}
+    
+    
+    //an example of how to graph an event -- 
+    //wrtsm.mods.ui.multi_line_graph("wrtsm", { ys : [ ED.events[1545375031336].map(e=>e.y) ] } )
+    
     return {sim,ED}
 }
-
-// Next steps --> 
-// ---- Interesting that I am seeing TWO spikes -- will have to think about this 
-// ---- DO I need "modes" where I detect deviations from baseline?
-// ---- if instead I only look at the deviations (std_percent_diff) then ...
-// ---- This will not work for situations when ABSOLUTE value of signal matters 
-// ---- Need to think about the philosophy of WHAT TYPES of CHANGE am I trying to "extract" 
-// ---- as one whole 
-// -- work on vcs and audio -> wrtsm.mods.event_detector node 
-
 
 
 var test_data  =  { x : 10 , y : 20 } 
