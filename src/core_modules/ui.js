@@ -148,10 +148,11 @@ class Graph {
     constructor(opts) { 
 	var {series_vector, title } = opts 
 	this.parent = null 
+	this.opts = opts
 	this.series_vector = series_vector 
-
+	console.log("Graph with Len : " + opts.x_len)
 	
-	var multi_opts = { x_len : params.global_x_len , 
+	var multi_opts = { x_len : opts.x_len || params.global_x_len , 
 			   title : title ,
 			   series_array : series_vector } 
 	
@@ -198,11 +199,13 @@ export default class ui {
 
     /* 
      * Add graph to the ui 
-     * @param {String} id - graph id 
-     * @param {Vector} series_vector - Ids for series which will be graphed on this graph 
+     * @param {Object} opts - Dict containing fields: id - graph id , series_vector - vector of Ids for series which will be graphed on this graph 
      */
-    add_graph(id, series_vector) { 
+    add_graph(opts) { 
+	var {id, series_vector, x_len} = opts
+	//console.log(series_vector)
 	var graph = new Graph( {series_vector : series_vector, 
+				x_len : x_len , 
 				title  : id + ": " + series_vector.join(", ")} )   
 			       
 	this.graphs[id] = graph 

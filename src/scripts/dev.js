@@ -93,13 +93,15 @@ function get_array_series(o) {
 }
 
 function get_dict_series(d) { 
+    var ret
     var list = Object.keys(d) 
     //return list   -- allows toggling the removal of time key from object
     var ind = list.indexOf('time') 
-    if (ind ) { 
+    if (ind >= 0 ) { 
 	list.splice(ind , 1 ) 
-	return list 
-    } else { return list } 
+	ret = list 
+    } else { ret = list } 
+    return ret 
 } 
 
 function array_to_update(arr) { 
@@ -108,23 +110,26 @@ function array_to_update(arr) {
 }
 
 
-function make_graph_for_obj(o,container) { 
+function make_graph_for_obj(opts) { 
+    var {o, container, x_len} = opts 
     var graph_ui = new mods.ui()
     var series   = null 
     //console.log(o)
     if (typeof o == "object") { 
 	if (Array.isArray(o)) {
 	    // its an array
+	    console.log("Making array grapher")
 	    series = get_array_series(o) 
 	    graph_ui.convert = array_to_update
 	} else {
 	    // assume its a dict
+	    console.log("Making dict grapher")
 	    series = get_dict_series(o) 
 	    graph_ui.convert = dict_to_update
 	}
     }
     
-    graph_ui.add_graph("main", series) 
+    graph_ui.add_graph({id  :"main", series_vector:  series, x_len : 1000})
     graph_ui.init(container) 
     graph_ui.init_time = util.now()
     return graph_ui 
@@ -135,18 +140,19 @@ function graph_object(x,o,graph_ui) {
     let updates = graph_ui.convert(o) 
     //console.log(updates)
     //apply the updates to the graph 
-    graph_ui.handle_sensor_buffer(x-graph_ui.init_time,updates)  // should work???
+    graph_ui.handle_sensor_buffer((x-graph_ui.init_time)/1000,updates)  // should work???
 }
 
 
-function get_object_grapher(container) { 
-    grapher = {}
+function get_object_grapher(opts) { 
+    var {container, x_len} = opts 
+    var grapher = {}
     grapher.init = true 
     grapher.graph_ui = null 
     
     grapher.process_data = function(o) { 
 	if (grapher.init) { 
-	    grapher.graph_ui = make_graph_for_obj(o,container)
+	    grapher.graph_ui = make_graph_for_obj({o,container,x_len})
 	    grapher.init = false 
 	} else { 
 	    var t = util.now()
@@ -222,20 +228,27 @@ function dev_1() {
 
 function dev_2() { 
     let sim = new mods.simulator({mode: "burst" } ) 
-    let grapher = get_object_grapher(document.getElementById("wrtsm") )
+    let grapher = get_object_grapher({container : document.getElementById("wrtsm") , 
+				      x_len     : 1000 } ) 
     let ln      = new mods.logger_node() 
     let ED      = new mods.event_detector({baseline_buffer_size : 5}) 
     
     pm.connect(sim,ED).connect(grapher)
+    //pm.connect(sim,grapher)
     //pm.connect(sim,ln)
     //pm.connect(sim,ED).connect(ln)
     sim.start_stream() 
-    return {sim, grapher, ED}
+    //return {sim, grapher, ED}
+    return {sim,ED}
 }
 
 // Next steps --> 
-// -- work on slowing DOWN the graph ... should be able to do this by augmenting the 
-// ---- UI.js add_graph function .. to specify the axis size  
+// ---- Interesting that I am seeing TWO spikes -- will have to think about this 
+// ---- DO I need "modes" where I detect deviations from baseline?
+// ---- if instead I only look at the deviations (std_percent_diff) then ...
+// ---- This will not work for situations when ABSOLUTE value of signal matters 
+// ---- Need to think about the philosophy of WHAT TYPES of CHANGE am I trying to "extract" 
+// ---- as one whole 
 // -- work on vcs and audio -> wrtsm.mods.event_detector node 
 
 

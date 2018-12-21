@@ -71,25 +71,6 @@ function linearize(obj) {
 } 
 
 
-// so the workflow for the event_detecting_node is that it does linearize(reduce(packet))
-// and then appends the result to cycling buffer
-
-// so i want the coefficient of variability (STD / MEAN) of ALL indeces to reach some threshold [BT] , at which point baseline is established
-// A baseline snapshot will be taken which includes the mean and std  for all indeces in buffer of B points
-// when a new packet comes in, it is linearized and then transformed to vec of zscores, and DET threshold applied, [DT]
-
-// separately, a history buffer of the actual data objects is kept with size [HB]
-
-// when DT treshold triggered, STATE transitioned to "recording event" and contents of HB dumped into  "current event"
-// any new packets  are added into "current event" , UNTIL [EE] number of packets which do not trigger DT have been received at which
-// point the "current event" is optionally added to bank but DEFNITELY FORWARDED to next node as an ARRAY of DATA PACKETS
-
-// At any point -- can trigger the detector_node to re-configure the baseline stds
-
-// optionally there should be a mode for using WRTSM to vizualize the incoming z scores inorder to validate z scoring thresholds 
-
-
-
 
 /**
  * Detects and emits deviation "events" from streams of arbitraty data objects
@@ -102,82 +83,167 @@ export default class event_detector {
 	var opts = opts || {} 
 	this.opts =  opts
 	this.log = makeLogger("ED")
-	this.baseline_data =  null 
+
+	this.state =  "awaiting_baseline" //  established_baseline | processing_event
 	
-	this.state =  { found_baseline : false  } 
+	//init counters for estabishing baseline 
+	this.baseline_counter = 0 
+	this.baseline_number = opts.baseline_number || 60
+	
+	//keep log of events that have been detected 
+	this.current_event = [] 
+	this.events =  {} 
 			
+	//set detection threshold 
+	this.detection_params = { upper : null, lower : null } 
+	//detection_thresh expressed as percent difference 
+	this.init_detection_params(opts.detection_thresh || 30) 
 	
-	this.baseline_buffer_size  = opts.baseline_buffer_size || 10 
-	this.history_buffer_size  = opts.baseline_buffer_size || 50
-	this.init_baseline_buffer() //will init baseline buffer with size N and fill with value null 
+	// save the last linearized packet for calculation 
+	this.last_linearized = null 
+	
+	// initialize history buffer 
+	this.history_buffer_size  = opts.history_buffer_size || 50
 	this.init_history_buffer()  
-	
-	
 	
 	this.default_handler = function(data) { 
 	    this.log("No data handler has been defined!") 
 	} 
 	this.data_handler = this.default_handler 
+	
     } 
-    
-    
-    process_pre_baseline(obj) { 
-	let transformed_packet = linearize(reduce(obj))  //transform the packet into linear array 
-	this.add_to_baseline(transformed_packet)         //add the information to our baseline buffer 
-	
-	//get stats from the current buffer 
-	let spd = util.spd_matrix(this.baseline_buffer) 
-	
-	//for now I really want to vizualize 
-	return spd
-	
+
+    init_detection_params(t) { 
+	this.detection_params.upper = Math.log( (t+100)/100 ) 
+	this.detection_params.lower = Math.log( (100-t)/100 )
     }
     
-
-    //hmm I just had a realization -- what I actually want is to detect CHANGES in the signal - so it is natural that I use DIFFS ! 
-    //better to have a small baseline buffer, after B samples of no change, baseline is established. Thereafter an 
-    //"event" is initiated when ANY change occurs, and then ends when there have been NUM_TO_FINISH numbers of packets with no change 
-	
-	
+    in_range(val) { 
+	return (val >= this.detection_params.lower && val <= this.detection_params.upper) 
+    }
     
-       
+    detect(arr) {
+	return !util.apply( util.and , arr.map(this.in_range, this)  )
+    }
+    
+    /** 
+     * Statefully checks if detector is at baseline 
+     * @param {Boolean} detected - result of this.detect() 
+     */
+    check_baseline(detected) { 
+	if (detected) { 
+	    //detected an event, reset the counter
+	    this.baseline_counter = 0 
+	    return false 
+	} else { 
+	    //no event detected... increment baseline counter 
+	    this.baseline_counter += 1 
+	    if (this.baseline_counter > this.baseline_number) { 
+		// reset baseline counter  (for later) 
+		this.baseline_counter = 0 
+		return true 
+	    } 
+	    return false 
+	}
+    }
+    
     /** 
      * Process a received data object
      * @param {obj} Data object to receive 
      */ 
     process_data(obj) { 
-	if (this.baseline_buffer_full() ) { 
-	    var result
-	    if (this.state.found_baseline ) { 
-		result = this.process_post_baseline(obj)
-	    } else { 
-		result = this.process_pre_baseline(obj) 
+
+	//transform the object into linearized struct 
+	let lp = linearize(reduce(obj))
+	
+	//on the first call we will set last_linearized 
+	//and return 
+	if (!this.last_linearized) { 
+	    this.last_linearized = lp
+	    return 
+	}
+	
+	//on all subsequent calls we will get here.. 
+	var result,bl ; 
+	
+	//run the detection 
+	let log_diff = util.array_log_diff(this.last_linearized, lp) 
+	let detected = this.detect(log_diff) 
+
+	switch (this.state) { 
+	    
+	case "awaiting_baseline" : 
+	    bl = this.check_baseline(detected) 
+	    if (bl) { 
+		this.log("Baseline established")
+		this.state = "baseline_established" 
 	    }
-	    this.data_handler(result)
-	} else { 
+	    // should we add to history here? 
+	    break; 
 	    
-	    let transformed_packet = linearize(reduce(obj))  //transform the packet into linear array 
-	    this.add_to_baseline(transformed_packet)         //add the information to our baseline buffe
+	case "baseline_established" :
+	    // here we are waiting for the detection of an event 
+	    this.add_to_history(obj) //add current obj to history
+	    if (detected) { 
+		//detected an event 
+		this.log("Detected event...") 
+		this.state = "processing_event" 
+		this.init_event() //copies contents of history buff into current event
+	    } else {}  //do nothing
+	    break; 
 	    
+	case "processing_event" : 
+	    //add the obj to current event 
+	    this.current_event.push(obj) 
+	    //check if we have reached baseline yet 
+	    bl = this.check_baseline(detected) 
+	    if (bl) { 
+		this.log("Event ended")
+		this.state = "baseline_established" 
+		this.flush_event()
+	    } else {  } //do nothing
+	    break ; 
+	    
+	default : 
+	    break ; 
+	} // END switch --- 
+	
+	if (true) { 
+	    //this.data_handler(obj)
+	    this.data_handler(log_diff)
 	}
     }
     
-    
-    add_to_baseline(obj) { 
-	util.cycle_array(this.baseline_buffer, obj) 
+    /** 
+     * Initiate event 
+     * 
+     */ 
+    init_event() { 
+	//copy contents of history buffer into current event 
+	this.current_event = [] 
+	for (var i=0;i<this.history_buffer.length;i++) { 
+	    this.current_event.push(this.history_buffer[i])
+	}
+	return null 
     }
-
+    
+    /** 
+     * Flush current event to the event buffer 
+     * 
+     */ 
+    flush_event() { 
+	this.events[ new Date().getTime() ] = this.current_event
+	// flush output to specific output pipe 
+	// v2 
+	
+	this.log("Flushed event") 
+	this.current_event = [] 
+    }
+    
     add_to_history(obj) { 
 	util.cycle_array(this.history_buffer, obj) 
     }
 
-    /**
-     * Init baseline buffer 
-     * 
-     */
-    init_baseline_buffer() { 
-	this.baseline_buffer = Array(this.baseline_buffer_size).fill(0)	
-    }
     
     /**
      * init history buffer 
@@ -186,14 +252,6 @@ export default class event_detector {
     init_history_buffer() { 
 	this.history_buffer = Array(this.history_buffer_size).fill(0)
     }
-    
-    /**
-     * Checks if the baseline buffer is full 
-     */
-    baseline_buffer_full() { 
-	return this.baseline_buffer[0]   //this works because the basline buffer is an array of 0 at init. Only when last value exists b[0] will be true
-    } 
-    
     
     
     /** 

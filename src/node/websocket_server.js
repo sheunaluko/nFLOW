@@ -27,6 +27,13 @@ wss.on('connection', function connection(ws) {
 	    if (message.data == "client") { 
 		client_connection = ws
 		log("Client registered.") 
+		
+		client_connection.on('close', function close() {
+		    client_connection = null 
+		    console.log("Client disconnected.... waiting for reconnect.") 
+		});
+
+		
 	    }
 	    break 
 	    
@@ -62,11 +69,7 @@ wss.on('connection', function connection(ws) {
 
 	    
   });
- 
-  client_connection.on('close', function close() {
-      client_connection = null 
-      console.log("Client disconnected") 
-  });
+    
 
 
     

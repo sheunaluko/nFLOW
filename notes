@@ -31,7 +31,7 @@ interface and trying to pipe it to the state machine)
 -- propagate back  
 - etc... 
 - each node has own pipe manager (so can call connect from itself) 
-- each node has multiple output ports? 
+- each node has multiple output ports? (as in ED example above) 
 
 
 

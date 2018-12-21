@@ -263,7 +263,7 @@ function get_session(id) {
     }) 
     
     var merged = [].concat.apply([], tmp);
-    return merged 
+    return merged.map( util.dict_vals_2_num ) 
 }
 
 

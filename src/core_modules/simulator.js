@@ -57,11 +57,15 @@ export default class simulator {
 	    val = (this.opts.multiplier || 1 ) * Math.random() + (this.opts.offset || 0 ) 
 	    break ; 
 	case 'burst' : 
+
 	    var burst = ! ( (new Date).getSeconds() % 5  )
-	    if (true ) { 
-		val = {x :  Math.random() + 5, y : Math.random() + 3, z : Math.random() + 20}
+	    if (burst ) { 
+		//val = {x :  0.1*Math.random() + 10} 
+		//console.log("burst")
+		val = {x :  Math.random() + 5, y : Math.random() + 20}
 	    } else { 
-		val = {x :  Math.random(), y : Math.random() }
+		//val = {x :  0.1*Math.random() + 0.5 }
+		val = {x :  Math.random() + 5, y : Math.random() + 10}
 	    }
 	    break ;
 	} 

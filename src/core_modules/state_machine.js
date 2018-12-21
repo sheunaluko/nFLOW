@@ -110,7 +110,8 @@ export default class state_machine {
 	//loop through the graphs 
 	for (var graph in this.ui_mapping )  { 
 	    var sensors = this.ui_mapping[graph] 
-	    this.ui.add_graph(graph, sensors)  // initializes a graph 
+	    var opts = {id : graph ,series_vector : sensors}     /// POTENTIAL BUG ON NEXT RUN  !? UNLESS FIX IS GOLDEN FIX
+	    this.ui.add_graph(opts)  // initializes a graph 
 	} 
 	
 	//after all the graphs have been added then we call init 
