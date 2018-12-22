@@ -11,7 +11,9 @@ import logger_node from "./core_modules/logger_node.js"
 import simulator from "./core_modules/simulator.js" 
 import ui from "./core_modules/ui.js" 
 import event_detector from "./core_modules/event_detector.js" 
+import base_node  from "./core_modules/base_node.js" 
 
 
-export var mods = { web_socket, data_storage , pipe_manager , raw_analyzer, state_machine, ui, transformer, simulator, logger_node, event_detector }
+
+export var mods = { web_socket, data_storage , pipe_manager , raw_analyzer, state_machine, ui, transformer, simulator, logger_node, event_detector ,base_node} 
 

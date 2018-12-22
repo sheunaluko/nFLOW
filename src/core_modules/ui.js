@@ -301,9 +301,9 @@ export default class ui {
     }
 	
 	
-	static multi_line_graph(container, opts) { 
-		create_static_multi_line_graph(container, opts) 
-	}
+    static multi_line_graph(container, opts) { 
+	create_static_multi_line_graph(container, opts) 
+    }
     
     
     

@@ -10,6 +10,7 @@ import {util}   from  "./module_resources/utils.js"
 import {beep}   from  "./module_resources/sounds.js"
 import {logger} from  "./core_modules/logger.js"
 import {load_script, load_css} from  "./module_resources/script_loader.js"
+import * as dev from  "./scripts/dev.js"
 
 // set debug 
 util.set_debug(false)
@@ -21,8 +22,12 @@ logger.register("wrtsm")
 wrtsm.flow = flow 
 wrtsm.util = util 
 wrtsm.beep = beep 
+wrtsm.dev  = dev
 
-
+/* additions to window */ 
+window.util = util 
+window.mods = wrtsm.mod
+window.dev = dev
 
 // HANDLE BOKEH LOADING (load the content from cdn if Bokeh is not defined in the window) ======================================== > 
 if (window.Bokeh) { 

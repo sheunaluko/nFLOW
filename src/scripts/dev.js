@@ -9,6 +9,8 @@ let state_machine = wrtsm.mods.state_machine
 let mods = wrtsm.mods 
 let pm = new mods.pipe_manager() 
 
+
+
 function wrtsm_init() { 
     
     // - 
@@ -226,7 +228,7 @@ function dev_1() {
     return {sim, grapher, ED}
 }
 
-function dev_2() { 
+export function dev_2() { 
     let sim = new mods.simulator({mode: "burst" } ) 
     let grapher = get_object_grapher({container : document.getElementById("wrtsm") , 
 				      x_len     : 1000 } ) 
@@ -247,8 +249,15 @@ function dev_2() {
     return {sim,ED}
 }
 
+export function test_base() { 
+    let n1 = new mods.base_node() 
+    let n2 = new mods.base_node() 
+    n1.connect(n2) 
+    return {n1, n2 } 
+}
 
-var test_data  =  { x : 10 , y : 20 } 
+
+
 
 
 

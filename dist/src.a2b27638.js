@@ -2534,7 +2534,519 @@ function () {
 }();
 
 exports.default = event_detector;
-},{"./logger.js":"core_modules/logger.js","../module_resources/utils.js":"src/module_resources/utils.js"}],"module_bundle.js":[function(require,module,exports) {
+},{"./logger.js":"core_modules/logger.js","../module_resources/utils.js":"src/module_resources/utils.js"}],"src/core_modules/base_node.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _logger = require("./logger.js");
+
+var _utils = require("../module_resources/utils.js");
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+/* 
+I would like to make it such that ALL wrtsm nodes can inherit from this class 
+thereby encapsulating all common functionality and providing an avenue for 
+simultaneous upgrades 
+
+Would like to support: 
+- stream_single 
+- each node manages its connections to other nodes 
+- various (named) output and input ports for nodes 
+   
+TERMS=> 
+Packet consists of { input_port_name , payload }
+Payload is the actual data which is communicated 
+
+Nodes always transmit PACKETS to each other,  which are then destructure into the 
+destired port, to which the specific PAYLOAD is delivered. 
+
+A payload handler will match the payload at a specific port with a specific handler (or collection of handlers) , which each routes the output to a specied OUTPUT port 
+
+
+The key thing to realize about this architecture is that there are both 
+INTRA nodal routings (mapping input to output ports via handlers )  
+- these are handled by the NODE_PAYLOAD_ROUTER instance -- 
+and 
+INTER nodal routings (mapping output ports to input ports of other nodes via forwarding) 
+-- these are handled by the node_io_router ---
+BOTH of these routings can have SEVERAL handlers associated with a given port 
+
+For example, node_1 could have input ports (i1) and (i2) , and two output port (o1) and (o2). 
+The first INTRA nodal handler may route i1->o1 via HANDLER_1,  i.e. o1( HANDLER_1(i1) ) 
+and another handler may route i1->o2 via HANDLER_2,  i.e. o2( HANDLER_2(i1) ) 
+
+Finally, node_1 o2 could be routed to multiple input ports of other nodes. 
+You will notice that the base_node class has two instances in the code when a handler_obj 
+Is retrieved and then all the attached handlers are called with a payload. 
+These two instances correspond to the INTRA and INTER nodal mappings discussed above
+
+
+*/
+
+/* 
+ * Object for retaining information of input and output ports of a node, 
+ * as well as information about global node connectivity 
+ */
+var node_io_router =
+/*#__PURE__*/
+function () {
+  function node_io_router() {
+    _classCallCheck(this, node_io_router);
+
+    this.inputs = {};
+    this.outputs = {};
+    this.base_node = null;
+    /* initialize the global node connectivity map (used to inspect connections)  */
+
+    if (!window.wrtsm.node_connections) {
+      window.wrtsm.node_connections = {};
+    }
+  }
+
+  _createClass(node_io_router, [{
+    key: "new_input",
+    value: function new_input(id) {
+      this.inputs[id] = {};
+    }
+  }, {
+    key: "new_output",
+    value: function new_output(id) {
+      this.outputs[id] = {};
+    }
+  }, {
+    key: "ensure_input",
+    value: function ensure_input(i) {
+      if (!this.inputs[i]) {
+        this.new_input(i);
+      }
+    }
+  }, {
+    key: "ensure_output",
+    value: function ensure_output(o) {
+      if (!this.outputs[o]) {
+        this.new_output(o);
+      }
+    }
+  }, {
+    key: "ensure_input_output",
+    value: function ensure_input_output(i, o) {
+      this.ensure_input(i);
+      this.ensure_output(o);
+    }
+  }, {
+    key: "get_connection_name",
+    value: function get_connection_name(_ref) {
+      var dict_from = _ref.dict_from,
+          dict_to = _ref.dict_to,
+          input_port = _ref.input_port,
+          output_port = _ref.output_port;
+      return dict_from.base_node.id + "." + output_port + "~>" + dict_to.base_node.id + "." + input_port;
+    }
+    /* 
+     * Connect output_port of dict_from with input_port of dict_to 
+     *
+     */
+
+  }, {
+    key: "connect",
+    value: function connect(_ref2) {
+      var output_port = _ref2.output_port,
+          dict_from = _ref2.dict_from,
+          input_port = _ref2.input_port,
+          dict_to = _ref2.dict_to;
+
+      /*  If the output_port or input_port is missing should ERROR  */
+      console.assert(dict_from.outputs[output_port]);
+      console.assert(dict_to.inputs[input_port]);
+      /* 
+       Some info briefly. The purpose of this fn is to route a payload OUT of a node 
+       and into the correct port of another node. Once it leaves the dict_from we no 
+       longer care what happens (presumably there are handlers set up for it!)  
+       
+       The output dictionary this.outputs is indexed by the output_port name. 
+       
+       */
+
+      /* get connection name */
+
+      var connection_name = this.get_connection_name({
+        dict_from: dict_from,
+        dict_to: dict_to,
+        input_port: input_port,
+        output_port: output_port
+      });
+
+      dict_from.outputs[output_port][connection_name] = function (payload) {
+        // this function is the payload handler
+        // will create packet and route it to destination node 
+        var packet = {
+          input_port: input_port,
+          payload: payload
+        };
+        dict_to.base_node.process_packet(packet);
+      };
+      /* and will also update the global connection struct */
+
+
+      window.wrtsm.node_connections[connection_name] = {
+        source: [dict_from.base_node.id, output_port],
+        sink: [dict_to.base_node.id, input_port]
+      };
+    }
+  }, {
+    key: "disconnect",
+    value: function disconnect(_ref3) {
+      var output_port = _ref3.output_port,
+          dict_from = _ref3.dict_from,
+          input_port = _ref3.input_port,
+          dict_to = _ref3.dict_to;
+
+      /*  If the output_port or input_port is missing should ERROR  */
+      console.assert(dict_from.outputs[output_port]);
+      console.assert(dict_to.inputs[input_port]);
+      /* get connection name */
+
+      var connection_name = this.get_connection_name({
+        dict_from: dict_from,
+        dict_to: dict_to,
+        input_port: input_port,
+        output_port: output_port
+      });
+      dict_from.outputs[output_port][connection_name] = null;
+      /* and will also update the global connection struct */
+
+      window.wrtsm.node_connections[connection_name] = null;
+    }
+  }, {
+    key: "get_global_connections",
+    value: function get_global_connections() {
+      return window.wrtsm.node_connections;
+    }
+  }, {
+    key: "set_base_node",
+    value: function set_base_node(node) {
+      this.base_node = node;
+    }
+  }]);
+
+  return node_io_router;
+}();
+/* 
+ * Object for managing handlers and mapping between input and output ports 
+ */
+
+
+var node_payload_router =
+/*#__PURE__*/
+function () {
+  function node_payload_router() {
+    _classCallCheck(this, node_payload_router);
+
+    this.handler_dict = {};
+    this.base_node = null; //reference to the node this belongs to 
+
+    this.io_router = new node_io_router();
+  }
+
+  _createClass(node_payload_router, [{
+    key: "has_handler",
+    value: function has_handler(port_name) {
+      return this.handler_dict[port_name];
+    }
+  }, {
+    key: "send_payload_to_output",
+    value: function send_payload_to_output(_ref4) {
+      var payload = _ref4.payload,
+          output_port = _ref4.output_port;
+
+      /* look up the handlers and execute them */
+      var handler_obj = this.io_router.outputs[output_port];
+      /* each handler obj is a dict with multiple handlers
+         indexed via connection_name */
+
+      for (var k in handler_obj) {
+        handler_obj[k](payload);
+      }
+    }
+  }, {
+    key: "add_input_handler",
+    value: function add_input_handler(_ref5) {
+      var handler_id = _ref5.handler_id,
+          input_port = _ref5.input_port,
+          handler = _ref5.handler,
+          output_port = _ref5.output_port;
+      //create the ports if they do not exist 
+      this.io_router.ensure_input_output(input_port, output_port); //create and register the appropriate handler 
+
+      if (!this.has_handler(input_port)) {
+        this.base_node.dlog("Handler unregistered"); //handler not yet defined for this port 
+
+        this.handler_dict[input_port] = {};
+      } //handlers have been defined  
+
+
+      this.base_node.dlog("Handler registered...");
+
+      this.handler_dict[input_port][handler_id] = function (_payload) {
+        //process the payload with the handler and send to output port 
+        var payload = handler(_payload);
+        this.send_payload_to_output({
+          payload: payload,
+          output_port: output_port
+        });
+      }.bind(this);
+      /* have to bind for this reference */
+
+    }
+  }, {
+    key: "remove_input_handler",
+    value: function remove_input_handler(opts) {
+      var input_port = opts.input_port,
+          handler_id = opts.handler_id;
+
+      if (this.has_handler(input_port)) {
+        this.handler_dict[input_port][handler_id] = null;
+      }
+    }
+  }, {
+    key: "set_base_node",
+    value: function set_base_node(node) {
+      this.base_node = node;
+    }
+  }]);
+
+  return node_payload_router;
+}();
+/**
+ * Base class for defining wrtsm nodes 
+ *
+ */
+
+
+var base_node =
+/*#__PURE__*/
+function () {
+  function base_node(opts) {
+    _classCallCheck(this, base_node);
+
+    opts = opts || {};
+    /* instantiate member variables */
+
+    this.opts = opts;
+    this.name = opts.node_name || "base_node";
+    /* create global counter for node IDs */
+
+    if (!wrtsm.node_counter) {
+      wrtsm.node_counter = 0;
+    }
+
+    this.id = this.name + "_" + wrtsm.node_counter++;
+    this.log = (0, _logger.makeLogger)(this.id);
+    this.dev_logger = (0, _logger.makeLogger)(this.id + "_dev");
+    this.dev_mode = false;
+
+    this.dlog = function (msg) {
+      if (this.dev_mode) {
+        this.dev_logger(msg);
+      }
+    };
+
+    this.dclog = function (msg) {
+      if (this.dev_mode) {
+        console.log(msg);
+      }
+    };
+
+    this.creation_time = new Date();
+    /* configure the node type base on opts params  */
+
+    this.is_source = opts.source;
+    this.is_sink = opts.sink;
+    this.is_through = opts.through || true;
+    /* these have significance in terms of base functionalities of the node /* 
+    	
+    /* create a payload router object for managing connections  */
+
+    this.payload_router = new node_payload_router();
+    /* assign appropriate references */
+
+    this.io_router = this.payload_router.io_router;
+    this.payload_router.set_base_node(this);
+    this.io_router.set_base_node(this);
+    /* define a default handler */
+
+    this.default_handler = function (payload) {
+      this.log(payload);
+      return payload; //must return in order to pass it on ! 
+    }.bind(this);
+    /* By default each node maps main_input -> main_handler -> main_output */
+
+
+    var main_opts = {
+      handler_id: "main",
+      input_port: "main_input",
+      output_port: "main_output",
+      handler: this.default_handler
+      /* configure main route */
+
+    };
+    this.payload_router.add_input_handler(main_opts);
+  }
+  /* 
+   * Helper function for calling handlers 
+   * @param {obj} opts - Contains {handler_obj , payload} 
+   */
+
+
+  _createClass(base_node, [{
+    key: "run_handlers",
+    value: function run_handlers(_ref6) {
+      var handler_obj = _ref6.handler_obj,
+          payload = _ref6.payload;
+
+      for (var k in handler_obj) {
+        handler_obj[k](payload);
+      }
+    }
+    /** 
+     * Generic packet processor 
+     * @param {Dict} packet - contains { input_port , payload } 
+     */
+
+  }, {
+    key: "process_packet",
+    value: function process_packet(_ref7) {
+      var input_port = _ref7.input_port,
+          payload = _ref7.payload;
+      this.dlog("Processing data packet..."); //in general when a packet comes in we 
+      //1. find the handlers associated with the input_port requested 
+
+      var handler_obj = this.payload_router.handler_dict[input_port];
+      this.dclog(handler_obj); //2. make sure it exists -- if not this is likely an error 
+
+      console.assert(handler_obj); //3. run all the handlers with the included payload 
+
+      this.run_handlers({
+        handler_obj: handler_obj,
+        payload: payload
+      });
+    }
+    /* pass on creation of inputs */
+
+  }, {
+    key: "new_input",
+    value: function new_input(id) {
+      this.io_router.new_input(id);
+    }
+  }, {
+    key: "new_output",
+    value: function new_output(id) {
+      this.io_router.new_output(id);
+    }
+    /** 
+     * Connect node to another node 
+     * @param {base_node} sink - Node to connect to 
+     * @param {obj} opts - Contains {output_port = "main_output",input_port = "main_input"}
+     */
+
+  }, {
+    key: "connect",
+    value: function connect(sink) {
+      var _ref8 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+          _ref8$output_port = _ref8.output_port,
+          output_port = _ref8$output_port === void 0 ? "main_output" : _ref8$output_port,
+          _ref8$input_port = _ref8.input_port,
+          input_port = _ref8$input_port === void 0 ? "main_input" : _ref8$input_port;
+
+      var dict_from = this.io_router;
+      var dict_to = sink.io_router;
+      this.io_router.connect({
+        output_port: output_port,
+        dict_from: dict_from,
+        input_port: input_port,
+        dict_to: dict_to
+      });
+      /* return the sink node for chaining connections :) */
+
+      return sink;
+    }
+  }, {
+    key: "disconnect",
+    value: function disconnect(sink) {
+      var _ref9 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+          _ref9$output_port = _ref9.output_port,
+          output_port = _ref9$output_port === void 0 ? "main_output" : _ref9$output_port,
+          _ref9$input_port = _ref9.input_port,
+          input_port = _ref9$input_port === void 0 ? "main_input" : _ref9$input_port;
+
+      var dict_from = this.io_router;
+      var dict_to = sink.io_router;
+      this.io_router.disconnect({
+        output_port: output_port,
+        dict_from: dict_from,
+        input_port: input_port,
+        dict_to: dict_to
+      });
+      /* return the sink node for chaining connections :) */
+
+      return sink;
+    }
+    /* Dev utilities for maually triggering nodes */
+
+    /* These ARE NOT INTENDED FOR REALTIME NODE COMMUNICATIONS */
+
+  }, {
+    key: "trigger_input_packet",
+    value: function trigger_input_packet(_ref10) {
+      var _ref10$input_port = _ref10.input_port,
+          input_port = _ref10$input_port === void 0 ? "main_input" : _ref10$input_port,
+          payload = _ref10.payload;
+      this.process_packet({
+        input_port: input_port,
+        payload: payload
+      });
+    }
+  }, {
+    key: "trigger_output_packet",
+    value: function trigger_output_packet(_ref11) {
+      var _ref11$output_port = _ref11.output_port,
+          output_port = _ref11$output_port === void 0 ? "main_output" : _ref11$output_port,
+          payload = _ref11.payload;
+      this.payload_router.send_payload_to_output({
+        payload: payload,
+        output_port: output_port
+      });
+    }
+  }, {
+    key: "trigger_input",
+    value: function trigger_input(payload) {
+      this.trigger_input_packet({
+        payload: payload
+      });
+    }
+  }, {
+    key: "trigger_output",
+    value: function trigger_output(payload) {
+      this.trigger_output_packet({
+        payload: payload
+      });
+    }
+  }]);
+
+  return base_node;
+}();
+
+exports.default = base_node;
+},{"./logger.js":"core_modules/logger.js","../module_resources/utils.js":"src/module_resources/utils.js"}],"src/module_bundle.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2562,6 +3074,8 @@ var _ui = _interopRequireDefault(require("./core_modules/ui.js"));
 
 var _event_detector = _interopRequireDefault(require("./core_modules/event_detector.js"));
 
+var _base_node = _interopRequireDefault(require("./core_modules/base_node.js"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // bundles all the modules into one object for easy access 
@@ -2576,10 +3090,11 @@ var mods = {
   transformer: _transformer.default,
   simulator: _simulator.default,
   logger_node: _logger_node.default,
-  event_detector: _event_detector.default
+  event_detector: _event_detector.default,
+  base_node: _base_node.default
 };
 exports.mods = mods;
-},{"./core_modules/web_socket.js":"core_modules/web_socket.js","./core_modules/data_storage.js":"src/core_modules/data_storage.js","./core_modules/pipe_manager.js":"core_modules/pipe_manager.js","./core_modules/raw_analyzer.js":"core_modules/raw_analyzer.js","./core_modules/state_machine.js":"src/core_modules/state_machine.js","./core_modules/transformer.js":"core_modules/transformer.js","./core_modules/logger_node.js":"core_modules/logger_node.js","./core_modules/simulator.js":"src/core_modules/simulator.js","./core_modules/ui.js":"src/core_modules/ui.js","./core_modules/event_detector.js":"src/core_modules/event_detector.js"}],"module_resources/sm_utils.js":[function(require,module,exports) {
+},{"./core_modules/web_socket.js":"core_modules/web_socket.js","./core_modules/data_storage.js":"src/core_modules/data_storage.js","./core_modules/pipe_manager.js":"core_modules/pipe_manager.js","./core_modules/raw_analyzer.js":"core_modules/raw_analyzer.js","./core_modules/state_machine.js":"src/core_modules/state_machine.js","./core_modules/transformer.js":"core_modules/transformer.js","./core_modules/logger_node.js":"core_modules/logger_node.js","./core_modules/simulator.js":"src/core_modules/simulator.js","./core_modules/ui.js":"src/core_modules/ui.js","./core_modules/event_detector.js":"src/core_modules/event_detector.js","./core_modules/base_node.js":"src/core_modules/base_node.js"}],"module_resources/sm_utils.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2639,7 +3154,7 @@ wrtsm.smu = _sm_utils.smu;
 wrtsm.dev = _dev.dev; //add it to window 
 
 window.wrtsm = wrtsm; //export it for use
-},{"./module_bundle.js":"module_bundle.js","./module_resources/sm_utils.js":"module_resources/sm_utils.js","./dev.js":"dev.js"}],"module_resources/state_machine_elements.js":[function(require,module,exports) {
+},{"./module_bundle.js":"src/module_bundle.js","./module_resources/sm_utils.js":"module_resources/sm_utils.js","./dev.js":"dev.js"}],"module_resources/state_machine_elements.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3114,7 +3629,312 @@ function load_css(url, cb) {
   link.href = url;
   document.getElementsByTagName("head")[0].appendChild(link);
 }
-},{}],"index.js":[function(require,module,exports) {
+},{}],"src/scripts/dev.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.dev_2 = dev_2;
+exports.test_base = test_base;
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+//window.addEventListener("wrtsm_ready" , wrtsm_init) 
+var util = wrtsm.util;
+var tf = wrtsm.mods.transformer;
+var state_machine = wrtsm.mods.state_machine;
+var mods = wrtsm.mods;
+var pm = new mods.pipe_manager();
+
+function wrtsm_init() {
+  // - 
+  var t0 = util.now(); //define transformers 
+
+  var bin = new tf(function (d) {
+    if (d > 0) {
+      return 1;
+    } else {
+      return -1;
+    }
+  });
+  var add_time = new tf(function (d) {
+    return {
+      val: d,
+      time: util.now() - t0
+    };
+  }); // create objects
+
+  var sim = new wrtsm.mods.simulator({
+    mode: "sin"
+  });
+  var sm = new wrtsm.mods.state_machine({
+    gui_mode: true
+  });
+  var pm = new wrtsm.mods.pipe_manager(); //configure the state machine 
+
+  sm.add_sensor({
+    id: "val",
+    f: wrtsm.smu.sensors.field("val")
+  }); // wire stuff up 
+
+  pm.connect(sim, bin).connect(add_time).connect(sm); // init gui 
+
+  sm.init_gui("wrtsm", {
+    g1: ["val"]
+  }); //start the stream at rate of 20ms
+
+  sim.start_stream(400);
+} // for rosegait init, we have to accomplish a coup of things 
+// 1. create a websocket object and connect to the websocket_server (on localhost:1234  by default) 
+// 2. Create the desired pipeline for analysis and vizualization of the desired data 
+// 3. Wrap the two above things into a function that is run AFTER the following two things 
+//  - a) The websocket_server is started via node websocket_server.js 
+//  - b) The ios app has connected to websocket_server by entering its url ( IP:1234 ) 
+
+
+function rose_gait_test_connection() {
+  //1. create web socket object
+  ws = new mods.web_socket("ws://localhost:1234"); //2. create a logger node  
+
+  ln = new mods.logger_node(); //3. connect them with pipe manager 
+
+  pm = new mods.pipe_manager();
+  pm.connect(ws, ln); //4. launch the web socket connection and we should get streaming data provided 
+  //that 3a and 3b have been satisfied 
+
+  ws.connect(); //5. return objects for manipulation 
+
+  return {
+    ws: ws,
+    ln: ln,
+    pm: pm
+  };
+}
+
+function rose_gait_init() {// TODO --> creation of satte machine and definition of relevant parameters, etc.. 
+  // also TODO -> modify index.js to make use of menuX ! 
+  //2. create state machine and define sensors 
+  //let sm_buffer = 200 
+  //let sm        = state_machine({buffer_size : sm_buffer , gui_mode: true}) 
+}
+
+var test_matrix = [[1, 2, 3], [2, 3, 4], [3, 4, 5]]; // FOR ARBITRARY GRAPHING -----------------------------------------------                                                   
+
+function dict_to_update(dict) {
+  return dict;
+}
+
+function get_array_series(o) {
+  //console.log(o)
+  return util.range(0, o.length).map(function (v) {
+    return "index_" + v;
+  });
+}
+
+function get_dict_series(d) {
+  var ret;
+  var list = Object.keys(d); //return list   -- allows toggling the removal of time key from object
+
+  var ind = list.indexOf('time');
+
+  if (ind >= 0) {
+    list.splice(ind, 1);
+    ret = list;
+  } else {
+    ret = list;
+  }
+
+  return ret;
+}
+
+function array_to_update(arr) {
+  var ser = get_array_series(arr);
+  return util.zip_map(ser, arr);
+}
+
+function make_graph_for_obj(opts) {
+  var o = opts.o,
+      container = opts.container,
+      x_len = opts.x_len;
+  var graph_ui = new mods.ui();
+  var series = null; //console.log(o)
+
+  if (_typeof(o) == "object") {
+    if (Array.isArray(o)) {
+      // its an array
+      console.log("Making array grapher");
+      series = get_array_series(o);
+      graph_ui.convert = array_to_update;
+    } else {
+      // assume its a dict
+      console.log("Making dict grapher");
+      series = get_dict_series(o);
+      graph_ui.convert = dict_to_update;
+    }
+  }
+
+  graph_ui.add_graph({
+    id: "main",
+    series_vector: series,
+    x_len: 1000
+  });
+  graph_ui.init(container);
+  graph_ui.init_time = util.now();
+  return graph_ui;
+}
+
+function graph_object(x, o, graph_ui) {
+  var updates = graph_ui.convert(o); //console.log(updates)
+  //apply the updates to the graph 
+
+  graph_ui.handle_sensor_buffer((x - graph_ui.init_time) / 1000, updates); // should work???
+}
+
+function get_object_grapher(opts) {
+  var container = opts.container,
+      x_len = opts.x_len;
+  var grapher = {};
+  grapher.init = true;
+  grapher.graph_ui = null;
+
+  grapher.process_data = function (o) {
+    if (grapher.init) {
+      grapher.graph_ui = make_graph_for_obj({
+        o: o,
+        container: container,
+        x_len: x_len
+      });
+      grapher.init = false;
+    } else {
+      var t = util.now(); //console.log(o)
+
+      graph_object(t, o, grapher.graph_ui);
+    }
+  };
+
+  return grapher;
+} //PROBLEM  !! when removing time attr from node then NO GREAPH! 
+
+
+function get_sim_node(opts) {
+  // - 
+  var t0 = util.now(); //define a transformer
+
+  var node = new tf(function (d) {
+    var packet = {
+      val: d,
+      time: util.now() - t0 //console.log(packet) 
+
+    };
+    return packet;
+  }); // create objects
+
+  var sim = new wrtsm.mods.simulator(opts);
+  var pm = new wrtsm.mods.pipe_manager(); // wire stuff up 
+
+  pm.connect(sim, node);
+  return {
+    sim: sim,
+    node: node
+  };
+}
+
+function wrap_sim(s) {
+  var pm = new mods.pipe_manager();
+  var t0 = util.now(); //define a transformer
+
+  var t = new tf(function (d) {
+    var packet = {
+      val: d,
+      time: util.now() - t0
+    };
+    return packet;
+  });
+  pm.connect(s, t);
+  return {
+    'start_stream': function () {
+      s.start_stream();
+    }.bind(s),
+    'set_data_handler': function (f) {
+      t.set_data_handler(f);
+    }.bind(t)
+  };
+}
+
+function dev_0() {
+  var w = document.getElementById("wrtsm");
+
+  var _get_sim_node = get_sim_node({
+    mode: "rand"
+  }),
+      sim = _get_sim_node.sim,
+      node = _get_sim_node.node;
+
+  var grapher = get_object_grapher(w);
+  node.set_data_handler(grapher.handler);
+  sim.start_stream();
+  return {
+    sim: sim,
+    node: node,
+    grapher: grapher
+  };
+}
+
+function dev_1() {
+  var sim = wrap_sim(new mods.simulator({
+    mode: "rand",
+    offset: 10,
+    multiplier: 1
+  }));
+  var grapher = get_object_grapher(document.getElementById("wrtsm"));
+  var ln = new mods.logger_node();
+  var ED = new mods.event_detector();
+  pm.connect(sim, ED).connect(grapher);
+  sim.start_stream();
+  return {
+    sim: sim,
+    grapher: grapher,
+    ED: ED
+  };
+}
+
+function dev_2() {
+  var sim = new mods.simulator({
+    mode: "burst"
+  });
+  var grapher = get_object_grapher({
+    container: document.getElementById("wrtsm"),
+    x_len: 1000
+  });
+  var ln = new mods.logger_node();
+  var ED = new mods.event_detector({
+    baseline_buffer_size: 5
+  });
+  pm.connect(sim, ED).connect(grapher); //pm.connect(sim,grapher)
+  //pm.connect(sim,ln)
+  //pm.connect(sim,ED).connect(ln)
+
+  sim.start_stream(); //return {sim, grapher, ED}
+  //an example of how to graph an event -- 
+  //wrtsm.mods.ui.multi_line_graph("wrtsm", { ys : [ ED.events[1545375031336].map(e=>e.y) ] } )
+
+  return {
+    sim: sim,
+    ED: ED
+  };
+}
+
+function test_base() {
+  var n1 = new mods.base_node();
+  var n2 = new mods.base_node();
+  n1.connect(n2);
+  return {
+    n1: n1,
+    n2: n2
+  };
+}
+},{}],"src/index.js":[function(require,module,exports) {
 "use strict";
 
 var _wrtsm = require("./wrtsm.js");
@@ -3128,6 +3948,10 @@ var _sounds = require("./module_resources/sounds.js");
 var _logger = require("./core_modules/logger.js");
 
 var _script_loader = require("./module_resources/script_loader.js");
+
+var dev = _interopRequireWildcard(require("./scripts/dev.js"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
 //The main program 1
 
@@ -3144,7 +3968,13 @@ _logger.logger.register("wrtsm");
 
 _wrtsm.wrtsm.flow = _rose_gait_workflows.flow;
 _wrtsm.wrtsm.util = _utils.util;
-_wrtsm.wrtsm.beep = _sounds.beep; // HANDLE BOKEH LOADING (load the content from cdn if Bokeh is not defined in the window) ======================================== > 
+_wrtsm.wrtsm.beep = _sounds.beep;
+_wrtsm.wrtsm.dev = dev;
+/* additions to window */
+
+window.util = _utils.util;
+window.mods = _wrtsm.wrtsm.mod;
+window.dev = dev; // HANDLE BOKEH LOADING (load the content from cdn if Bokeh is not defined in the window) ======================================== > 
 
 if (window.Bokeh) {
   _logger.logger.wrtsm("Bokeh was detected already. If you experience any errors, please make sure that the following resources are included in your html for proper functionality:");
@@ -3178,7 +4008,7 @@ if (window.Bokeh) {
 
 _wrtsm.wrtsm.load_time = new Date().getTime(); //var d = {"misc" : ["dev_b_gyr_z"] } 
 //setTimeout( function() { window.d = flow.playback_gui(d) ; window.d[0].start_stream()  } , 1000)
-},{"./wrtsm.js":"wrtsm.js","./scripts/rose_gait_workflows.js":"src/scripts/rose_gait_workflows.js","./module_resources/utils.js":"src/module_resources/utils.js","./module_resources/sounds.js":"module_resources/sounds.js","./core_modules/logger.js":"core_modules/logger.js","./module_resources/script_loader.js":"module_resources/script_loader.js"}],"../../.nvm/versions/node/v11.4.0/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./wrtsm.js":"wrtsm.js","./scripts/rose_gait_workflows.js":"src/scripts/rose_gait_workflows.js","./module_resources/utils.js":"src/module_resources/utils.js","./module_resources/sounds.js":"module_resources/sounds.js","./core_modules/logger.js":"core_modules/logger.js","./module_resources/script_loader.js":"module_resources/script_loader.js","./scripts/dev.js":"src/scripts/dev.js"}],"../../.nvm/versions/node/v11.4.0/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -3205,7 +4035,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49502" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57330" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
@@ -3347,5 +4177,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},["../../.nvm/versions/node/v11.4.0/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","index.js"], null)
+},{}]},{},["../../.nvm/versions/node/v11.4.0/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","src/index.js"], null)
 //# sourceMappingURL=/src.a2b27638.map
