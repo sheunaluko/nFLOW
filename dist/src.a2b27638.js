@@ -2553,6 +2553,7 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 /* 
+[Fri Dec 21 12:12:27 EST 2018]
 I would like to make it such that ALL wrtsm nodes can inherit from this class 
 thereby encapsulating all common functionality and providing an avenue for 
 simultaneous upgrades 
@@ -2566,28 +2567,35 @@ TERMS=>
 Packet consists of { input_port_name , payload }
 Payload is the actual data which is communicated 
 
-Nodes always transmit PACKETS to each other,  which are then destructure into the 
-destired port, to which the specific PAYLOAD is delivered. 
+Nodes always transmit PACKETS to each other,  which are then destructured into the 
+desired port, to which the specific PAYLOAD is delivered. 
 
-A payload handler will match the payload at a specific port with a specific handler (or collection of handlers) , which each routes the output to a specied OUTPUT port 
+A payload handler will match the payload at a specific port with a specific handler (or collection of handlers) , which each routes  processed payload to a specied OUTPUT port according to the routing defined in NODE_PAYLOAD_ROUTER 
 
+Outputs are then processed via the routing in NODE_IO_ROUTER 
 
 The key thing to realize about this architecture is that there are both 
 INTRA nodal routings (mapping input to output ports via handlers )  
 - these are handled by the NODE_PAYLOAD_ROUTER instance -- 
 and 
 INTER nodal routings (mapping output ports to input ports of other nodes via forwarding) 
--- these are handled by the node_io_router ---
-BOTH of these routings can have SEVERAL handlers associated with a given port 
+-- these are handled by the NODE_IO_ROUTER ---
+BOTH of these routings can have !SEVERAL! handlers associated with a given port 
 
 For example, node_1 could have input ports (i1) and (i2) , and two output port (o1) and (o2). 
-The first INTRA nodal handler may route i1->o1 via HANDLER_1,  i.e. o1( HANDLER_1(i1) ) 
+The first INTRA nodal handler (PAYLOAD_ROUTER)  may route i1->o1 via HANDLER_1,  i.e. o1( HANDLER_1(i1) ) 
 and another handler may route i1->o2 via HANDLER_2,  i.e. o2( HANDLER_2(i1) ) 
 
 Finally, node_1 o2 could be routed to multiple input ports of other nodes. 
 You will notice that the base_node class has two instances in the code when a handler_obj 
 Is retrieved and then all the attached handlers are called with a payload. 
 These two instances correspond to the INTRA and INTER nodal mappings discussed above
+
+--- 
+
+About streaming. 
+this.enable_stream will make  a SOURCE node initialize its data soure, but this.streaming will still be false and the source node will IGNORE packets 
+this.streaming = true will allow ANY node to actually process its input packet 
 
 
 */
@@ -2852,7 +2860,7 @@ function () {
     this.id = this.name + "_" + wrtsm.node_counter++;
     this.log = (0, _logger.makeLogger)(this.id);
     this.dev_logger = (0, _logger.makeLogger)(this.id + "_dev");
-    this.dev_mode = false;
+    this.dev_mode = true;
 
     this.dlog = function (msg) {
       if (this.dev_mode) {
@@ -2867,11 +2875,21 @@ function () {
     };
 
     this.creation_time = new Date();
+    /* stream stuff */
+
+    this.num_to_stream = null; //for gating number of packets from source 
+
+    this.stream_enabler = opts.stream_enabler;
+    this.stream_disabler = opts.stream_disabler;
+    /* by default only sources must be enabled and started */
+
+    this.streaming = opts.streaming || !opts.is_source;
+    this.stream_enabled = opts.stream_enabled || !opts.is_source;
     /* configure the node type base on opts params  */
 
-    this.is_source = opts.source;
-    this.is_sink = opts.sink;
-    this.is_through = opts.through || true;
+    this.is_source = opts.is_source;
+    this.is_sink = opts.is_sink;
+    this.is_through = opts.is_through || true;
     /* these have significance in terms of base functionalities of the node /* 
     	
     /* create a payload router object for managing connections  */
@@ -2927,18 +2945,29 @@ function () {
     value: function process_packet(_ref7) {
       var input_port = _ref7.input_port,
           payload = _ref7.payload;
-      this.dlog("Processing data packet..."); //in general when a packet comes in we 
-      //1. find the handlers associated with the input_port requested 
 
-      var handler_obj = this.payload_router.handler_dict[input_port];
-      this.dclog(handler_obj); //2. make sure it exists -- if not this is likely an error 
+      if (this.streaming) {
+        this.dlog("Processing data packet..."); //in general when a packet comes in we 
+        //1. find the handlers associated with the input_port requested 
 
-      console.assert(handler_obj); //3. run all the handlers with the included payload 
+        var handler_obj = this.payload_router.handler_dict[input_port];
+        this.dclog(handler_obj); //2. make sure it exists -- if not this is likely an error 
 
-      this.run_handlers({
-        handler_obj: handler_obj,
-        payload: payload
-      });
+        console.assert(handler_obj); //3. run all the handlers with the included payload 
+
+        this.run_handlers({
+          handler_obj: handler_obj,
+          payload: payload
+        });
+
+        if (this.num_to_stream) {
+          if (--this.num_to_stream == 0) {
+            this.streaming = false;
+          }
+        }
+      } else {
+        this.dlog("Not streaming!");
+      }
     }
     /* pass on creation of inputs */
 
@@ -3000,9 +3029,75 @@ function () {
 
       return sink;
     }
+    /*  
+    Sat Dec 22 12:59:41 EST 2018
+    I am unsure if I should use protocols or class functions for implementing 
+    the start_stream , stop_stream, stream_single... etc... 
+    FROM Stack Overflow --> "class" defines what an object is.
+    "protocol" defines a behavior the object has.
+    One difference which resonated with me is: Consider you have an object STREAMER 
+    which takes 
+    a base_node and will call start_stream. As long as you are only dealing with base_nodes 
+    this is fine, but if in the future you could have OTHER objects which ALSO implement 
+    start_stream, then for extensibility sake it is better to implmenet STREAMER 
+    by having it accept ANY object which implements a protocol ? 
+    I think this makes a bigger difference if you are using a STATICALLY typed language, 
+    since in a dynamically typed language functions can take arbitrary inputs without 
+    validating what their TYPE is or which protocols they implement (and call them 
+    however they want -- which of course risks run time errors ) 
+    Regardless -- JS does not support protocols , so I will have child classes 
+    assign functions to instance variables which are called via a "protocol" 
+     */
+
+    /* the member variables used below are created an object instantiation */
+
+  }, {
+    key: "enable_stream",
+    value: function enable_stream() {
+      this.stream_enabler(this);
+    }
+  }, {
+    key: "disable_stream",
+    value: function disable_stream() {
+      this.stream_disabler(this);
+    }
+    /* start, stop, and num streams */
+
+  }, {
+    key: "start_stream",
+    value: function start_stream() {
+      if (!this.stream_enabled) {
+        this.enable_stream();
+      }
+
+      this.num_to_stream = null;
+      this.streaming = true;
+    }
+  }, {
+    key: "stop_stream",
+    value: function stop_stream() {
+      this.streaming = false;
+    }
+  }, {
+    key: "stream_num",
+    value: function stream_num(n) {
+      if (!this.stream_enabled) {
+        this.enable_stream();
+      }
+
+      this.num_to_stream = n;
+      this.streaming = true;
+    }
+  }, {
+    key: "stream_single",
+    value: function stream_single() {
+      this.stream_num(1);
+    }
     /* Dev utilities for maually triggering nodes */
 
-    /* These ARE NOT INTENDED FOR REALTIME NODE COMMUNICATIONS */
+    /* These are not originally intended for realtime node communications */
+
+    /* though may prove useful */
 
   }, {
     key: "trigger_input_packet",
@@ -3046,7 +3141,127 @@ function () {
 }();
 
 exports.default = base_node;
-},{"./logger.js":"core_modules/logger.js","../module_resources/utils.js":"src/module_resources/utils.js"}],"src/module_bundle.js":[function(require,module,exports) {
+},{"./logger.js":"core_modules/logger.js","../module_resources/utils.js":"src/module_resources/utils.js"}],"src/core_modules/web_socket_tmp.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _utils = require("../module_resources/utils.js");
+
+var _base_node2 = _interopRequireDefault(require("./base_node.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+/**
+ * Manages the websocket connection to an incoming data stream.
+ *
+ * @param {String} url - The websocket url to connect to, e.g. ws://localhost:1234
+ */
+var web_socket =
+/*#__PURE__*/
+function (_base_node) {
+  _inherits(web_socket, _base_node);
+
+  function web_socket(url) {
+    var _this2;
+
+    _classCallCheck(this, web_socket);
+
+    var stream_enabler = function stream_enabler(_this) {
+      _this.connect();
+    };
+
+    var stream_disabler = function stream_disabler(_this) {
+      _this.send_json({
+        type: "control",
+        data: "stop"
+      });
+
+      _this.connection.close();
+    };
+
+    var node_name = "WS";
+    var is_source = true;
+    _this2 = _possibleConstructorReturn(this, _getPrototypeOf(web_socket).call(this, {
+      stream_enabler: stream_enabler,
+      stream_disabler: stream_disabler,
+      node_name: node_name,
+      is_source: is_source
+    }));
+    _this2.url = url;
+    _this2.connection = null;
+    return _this2;
+  }
+  /**
+   * Connect to remote websocket server. Upon success, registers the websocket connection
+   * as "client" with the server, enables streaming, and this.logs to console. 
+   */
+
+
+  _createClass(web_socket, [{
+    key: "connect",
+    value: function connect() {
+      var conn = new WebSocket(this.url); // Connection opened
+
+      conn.addEventListener('open', function (event) {
+        this.log("Connection to " + this.url + " successful. Registering client with server.");
+        this.send_json({
+          type: "register",
+          data: "client"
+        });
+        this.send_json({
+          type: "control",
+          data: "start"
+        });
+      }.bind(this)); //bind is necessary for web_socket class vs WebSocket instance! 
+      // Listen for messages
+
+      conn.addEventListener('message', function (event) {
+        var payload = _utils.util.dict_vals_2_num(JSON.parse(event.data));
+
+        this.trigger_input(payload); //defaults to main input_port 
+      }.bind(this)); //bind is necessary for web_socket class vs WebSocket instance! 
+
+      this.connection = conn;
+    }
+    /** 
+      * Sends JSON data through socket. 
+      * @param {Object} obj - Data object to send 
+      */
+
+  }, {
+    key: "send_json",
+    value: function send_json(obj) {
+      this.connection.send(JSON.stringify(obj));
+    }
+  }]);
+
+  return web_socket;
+}(_base_node2.default);
+
+exports.default = web_socket;
+},{"../module_resources/utils.js":"src/module_resources/utils.js","./base_node.js":"src/core_modules/base_node.js"}],"src/module_bundle.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3076,6 +3291,8 @@ var _event_detector = _interopRequireDefault(require("./core_modules/event_detec
 
 var _base_node = _interopRequireDefault(require("./core_modules/base_node.js"));
 
+var _web_socket_tmp = _interopRequireDefault(require("./core_modules/web_socket_tmp.js"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // bundles all the modules into one object for easy access 
@@ -3091,10 +3308,11 @@ var mods = {
   simulator: _simulator.default,
   logger_node: _logger_node.default,
   event_detector: _event_detector.default,
-  base_node: _base_node.default
+  base_node: _base_node.default,
+  web_socket_tmp: _web_socket_tmp.default
 };
 exports.mods = mods;
-},{"./core_modules/web_socket.js":"core_modules/web_socket.js","./core_modules/data_storage.js":"src/core_modules/data_storage.js","./core_modules/pipe_manager.js":"core_modules/pipe_manager.js","./core_modules/raw_analyzer.js":"core_modules/raw_analyzer.js","./core_modules/state_machine.js":"src/core_modules/state_machine.js","./core_modules/transformer.js":"core_modules/transformer.js","./core_modules/logger_node.js":"core_modules/logger_node.js","./core_modules/simulator.js":"src/core_modules/simulator.js","./core_modules/ui.js":"src/core_modules/ui.js","./core_modules/event_detector.js":"src/core_modules/event_detector.js","./core_modules/base_node.js":"src/core_modules/base_node.js"}],"module_resources/sm_utils.js":[function(require,module,exports) {
+},{"./core_modules/web_socket.js":"core_modules/web_socket.js","./core_modules/data_storage.js":"src/core_modules/data_storage.js","./core_modules/pipe_manager.js":"core_modules/pipe_manager.js","./core_modules/raw_analyzer.js":"core_modules/raw_analyzer.js","./core_modules/state_machine.js":"src/core_modules/state_machine.js","./core_modules/transformer.js":"core_modules/transformer.js","./core_modules/logger_node.js":"core_modules/logger_node.js","./core_modules/simulator.js":"src/core_modules/simulator.js","./core_modules/ui.js":"src/core_modules/ui.js","./core_modules/event_detector.js":"src/core_modules/event_detector.js","./core_modules/base_node.js":"src/core_modules/base_node.js","./core_modules/web_socket_tmp.js":"src/core_modules/web_socket_tmp.js"}],"module_resources/sm_utils.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4035,7 +4253,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57330" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55776" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);

@@ -5,6 +5,7 @@ import {util} from "../module_resources/utils.js"
 
 
 /* 
+[Fri Dec 21 12:12:27 EST 2018]
 I would like to make it such that ALL wrtsm nodes can inherit from this class 
 thereby encapsulating all common functionality and providing an avenue for 
 simultaneous upgrades 
@@ -18,28 +19,35 @@ TERMS=>
 Packet consists of { input_port_name , payload }
 Payload is the actual data which is communicated 
 
-Nodes always transmit PACKETS to each other,  which are then destructure into the 
-destired port, to which the specific PAYLOAD is delivered. 
+Nodes always transmit PACKETS to each other,  which are then destructured into the 
+desired port, to which the specific PAYLOAD is delivered. 
 
-A payload handler will match the payload at a specific port with a specific handler (or collection of handlers) , which each routes the output to a specied OUTPUT port 
+A payload handler will match the payload at a specific port with a specific handler (or collection of handlers) , which each routes  processed payload to a specied OUTPUT port according to the routing defined in NODE_PAYLOAD_ROUTER 
 
+Outputs are then processed via the routing in NODE_IO_ROUTER 
 
 The key thing to realize about this architecture is that there are both 
 INTRA nodal routings (mapping input to output ports via handlers )  
 - these are handled by the NODE_PAYLOAD_ROUTER instance -- 
 and 
 INTER nodal routings (mapping output ports to input ports of other nodes via forwarding) 
--- these are handled by the node_io_router ---
-BOTH of these routings can have SEVERAL handlers associated with a given port 
+-- these are handled by the NODE_IO_ROUTER ---
+BOTH of these routings can have !SEVERAL! handlers associated with a given port 
 
 For example, node_1 could have input ports (i1) and (i2) , and two output port (o1) and (o2). 
-The first INTRA nodal handler may route i1->o1 via HANDLER_1,  i.e. o1( HANDLER_1(i1) ) 
+The first INTRA nodal handler (PAYLOAD_ROUTER)  may route i1->o1 via HANDLER_1,  i.e. o1( HANDLER_1(i1) ) 
 and another handler may route i1->o2 via HANDLER_2,  i.e. o2( HANDLER_2(i1) ) 
 
 Finally, node_1 o2 could be routed to multiple input ports of other nodes. 
 You will notice that the base_node class has two instances in the code when a handler_obj 
 Is retrieved and then all the attached handlers are called with a payload. 
 These two instances correspond to the INTRA and INTER nodal mappings discussed above
+
+--- 
+
+About streaming. 
+this.enable_stream will make  a SOURCE node initialize its data soure, but this.streaming will still be false and the source node will IGNORE packets 
+this.streaming = true will allow ANY node to actually process its input packet 
 
 
 */
@@ -220,15 +228,22 @@ export default class base_node {
 	this.id = this.name + "_" + wrtsm.node_counter++
 	this.log = makeLogger(this.id) 
 	this.dev_logger = makeLogger(this.id + "_dev")
-	this.dev_mode = false
+	this.dev_mode = true 
 	this.dlog = function(msg) { if (this.dev_mode) { this.dev_logger(msg) } } 
 	this.dclog = function(msg) {if (this.dev_mode) { console.log(msg) } } 
 	this.creation_time = new Date() 
-	
+	/* stream stuff */ 
+	this.num_to_stream = null //for gating number of packets from source 
+	this.stream_enabler = opts.stream_enabler
+	this.stream_disabler = opts.stream_disabler
+	/* by default only sources must be enabled and started */ 
+	this.streaming = opts.streaming || !opts.is_source 
+	this.stream_enabled = opts.stream_enabled ||  !opts.is_source 
+	    
 	/* configure the node type base on opts params  */ 
-	this.is_source     = opts.source 
-	this.is_sink       = opts.sink 
-	this.is_through    = opts.through || true 
+	this.is_source     = opts.is_source 
+	this.is_sink       = opts.is_sink 
+	this.is_through    = opts.is_through || true 
 	/* these have significance in terms of base functionalities of the node /* 
 
 	
@@ -268,16 +283,24 @@ export default class base_node {
      * @param {Dict} packet - contains { input_port , payload } 
      */ 
     process_packet({input_port, payload}) { 
-	this.dlog("Processing data packet...")
-	//in general when a packet comes in we 
-	//1. find the handlers associated with the input_port requested 
-	let handler_obj = this.payload_router.handler_dict[input_port] 
-	this.dclog(handler_obj)
-	//2. make sure it exists -- if not this is likely an error 
-	console.assert(handler_obj) 
-	//3. run all the handlers with the included payload 
-	this.run_handlers({handler_obj, payload})
-    } 
+	if (this.streaming) { 
+	    this.dlog("Processing data packet...")
+	    //in general when a packet comes in we 
+	    //1. find the handlers associated with the input_port requested 
+	    let handler_obj = this.payload_router.handler_dict[input_port] 
+	    this.dclog(handler_obj)
+	    //2. make sure it exists -- if not this is likely an error 
+	    console.assert(handler_obj) 
+	    //3. run all the handlers with the included payload 
+	    this.run_handlers({handler_obj, payload})
+	    
+	    if (this.num_to_stream) { 
+		if (--this.num_to_stream == 0 ) { this.streaming = false } 
+	    } 
+						
+	} else {this.dlog("Not streaming!")}
+    }
+	    
     
     
     /* pass on creation of inputs */ 
@@ -307,9 +330,53 @@ export default class base_node {
 	return sink 
     }
     
+    /*  
+	Sat Dec 22 12:59:41 EST 2018
+	I am unsure if I should use protocols or class functions for implementing 
+	the start_stream , stop_stream, stream_single... etc... 
+	
+	FROM Stack Overflow --> "class" defines what an object is.
+	"protocol" defines a behavior the object has.
+	
+	One difference which resonated with me is: Consider you have an object STREAMER 
+	which takes 
+	a base_node and will call start_stream. As long as you are only dealing with base_nodes 
+	this is fine, but if in the future you could have OTHER objects which ALSO implement 
+	start_stream, then for extensibility sake it is better to implmenet STREAMER 
+	by having it accept ANY object which implements a protocol ? 
+	
+	I think this makes a bigger difference if you are using a STATICALLY typed language, 
+	since in a dynamically typed language functions can take arbitrary inputs without 
+	validating what their TYPE is or which protocols they implement (and call them 
+	however they want -- which of course risks run time errors ) 
+	
+	Regardless -- JS does not support protocols , so I will have child classes 
+	assign functions to instance variables which are called via a "protocol" 
+     */
+    
+    /* the member variables used below are created an object instantiation */ 
+    enable_stream()  {this.stream_enabler(this)}
+    disable_stream() {this.stream_disabler(this)}    
+    
+    /* start, stop, and num streams */
+    start_stream()  { 
+	if (!this.stream_enabled) { this.enable_stream() } 
+	this.num_to_stream = null 
+	this.streaming = true 
+    }
+    stop_stream() { 
+	this.streaming = false 
+    }
+    stream_num(n) { 
+	if (!this.stream_enabled) { this.enable_stream() } 
+	this.num_to_stream = n 
+	this.streaming = true 
+    } 
+    stream_single() {this.stream_num(1)} 
 
     /* Dev utilities for maually triggering nodes */ 
-    /* These ARE NOT INTENDED FOR REALTIME NODE COMMUNICATIONS */ 
+    /* These are not originally intended for realtime node communications */
+    /* though may prove useful */ 
     trigger_input_packet({input_port = "main_input" , payload} ) { 
 	this.process_packet({input_port , payload })
     }
@@ -322,12 +389,5 @@ export default class base_node {
     trigger_output(payload) { 
 	this.trigger_output_packet({payload})
     }
-
-			    
-			    
-			    
-    
 }
-
-
 
