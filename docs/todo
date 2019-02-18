@@ -1,0 +1,9 @@
+
+
+- Concepts section 
+- fix UI class and add docs 
+- WORK ON TUTORIAL / EXPLAINER => SHOWCASING THE SIMULATED GAIT DATA ! 
+--- tutorial would work for pablo => COULD AJAX REQuest THE SIM WALK DATA 
+--- then load it into the simulator actually.. interesting 
+--- then I could separate the data storage from the simulator ? 
+

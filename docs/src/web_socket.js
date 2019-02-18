@@ -1,25 +1,36 @@
-// Sat Sep 29 18:31:15 PDT 2018
+// Sat Dec 22 22:02:38 EST 2018
 
-import {makeLogger} from "./logger.js"
-import util from "../module_resources/utils.js"
+import {util} from "../module_resources/utils.js"
+import base_node from  "./base_node.js"
 
 /**
  * Manages the websocket connection to an incoming data stream.
  *
  * @param {String} url - The websocket url to connect to, e.g. ws://localhost:1234
  */
- class web_socket {
+ class web_socket extends base_node {
     
     constructor(url) { 
+
+	let node_name = "WS" 
+	let is_source = true 
+
+	super({node_name, is_source})
+
+	let stream_enabler = function(){ 
+	    this.connect() 
+	}
+	
+	let stream_disabler = function(){ 
+	    this.send_json({type : "control" , data : "stop" })
+	    this.connection.close() 
+	}
+	
+	this.configure({stream_enabler, stream_disabler}) 
 	this.url = url ;  
 	this.connection = null ;  
-	this.log = makeLogger("WS")
-	this.default_handler = function(data) { 
-	    this.log("No data handler has been defined!") 
-	} 
-	this.data_handler = this.default_handler 
+
     } 
-    
     
     /**
      * Connect to remote websocket server. Upon success, registers the websocket connection
@@ -34,39 +45,16 @@ import util from "../module_resources/utils.js"
 	    this.send_json({type: "control"  , data : "start"  }) 
 	}).bind(this)) //bind is necessary for web_socket class vs WebSocket instance! 
 
-	
 	// Listen for messages
 	conn.addEventListener('message', (function (event) {
-	    //this.log("Received msg: " + event.data) 
-	    this.data_handler(util.dict_vals_2_num(JSON.parse(event.data))) //parse json and convert nums
+	    let payload = util.dict_vals_2_num(JSON.parse(event.data))
+	    this.trigger_input(payload) //defaults to main input_port 
 	}).bind(this)) //bind is necessary for web_socket class vs WebSocket instance! 
 	
 	this.connection = conn ; 
     } 
     
-    /** 
-     * Start accepting incoming raw data objects.
-     */ 
-    start_stream() { 
-	this.send_json({type : "control" , data : "start" } ) 
-    }
-
-    /** 
-     * Stop accepting incoming raw data objects.
-     */ 
-    stop_stream() { 
-	this.send_json({type : "control" , data : "stop" } ) 
-    }
-
-    /** 
-     * Sets the data_handler attribute, which determines what the socket does to incomin data.
-     * @param {Function} func - Function which accepts ONE raw data object {..} and processes it.
-     */ 
-    set_data_handler(func) { 
-	this.data_handler = func ; 
-    }
-
-    /** 
+   /** 
      * Sends JSON data through socket. 
      * @param {Object} obj - Data object to send 
      */ 
@@ -74,7 +62,5 @@ import util from "../module_resources/utils.js"
 	this.connection.send(JSON.stringify(obj))
     }
 
-    
-    
 }
 

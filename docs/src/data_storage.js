@@ -1,32 +1,46 @@
-//Tue Oct  2 10:12:11 PDT 2018
+//Sat Jan  5 21:00:37 EST 2019
 
-import {makeLogger} from "./logger.js"
 import {util} from "../module_resources/utils.js"
+import base_node from  "./base_node.js"
 
 /**
  * 
  * 
  */
 
- class data_storage {
+ class data_storage extends base_node {
 
     /**
      * Manages data persistence and replay/simulation. Uses browser based local storage. 
      * @param {String} name - Session identifier, use null for default time string
      */ 
     constructor(name) { 
+
+	let node_name = "DS"
+	let is_source = true 
+	let is_sink = true
+	
+	super({node_name, is_source, is_sink})
+	
+	let stream_enabler = function() { 
+	    this.load_session() 
+	} 
+	
+	let stream_disabler = function() { 
+	    this.log("No stream disabler implemented") 
+	}
+	
+	let main_handler = function(payload) { 
+	    this.data_history.push(obj) 
+	} 
+	
+	this.configure({stream_enabler, stream_disabler}) 
 	this.session_id = name || (new Date()).toISOString()
 	this.data_history = [] 
 	this.part_counter = 1 
 	this.save_interval_id = null 
 	this.loaded_session = null 
 	this.playback_speed_multiplier = 1
-	
-	this.log = makeLogger("DS")
-	this.default_handler = function(data) { 
-	    this.log("No data handler has been defined!") 
-	} 
-	this.data_handler = this.default_handler 
 	this.stream_index = 0 
     } 
     
@@ -58,14 +72,6 @@ import {util} from "../module_resources/utils.js"
 	clearInterval(this.save_interval_id) 
 	this.log("Saving stopped for session: " + this.session_id) 
     } 
-    
-    /** 
-     * Main data handler. Will append the incoming data to the data_history array 
-     * @param {Object} obj - The data obj to add 
-     */
-    process_data(obj) { 
-	this.data_history.push(obj) 
-    } 
 
     /** 
      * Loads a data storage session from localStorage. Returns Array. 
@@ -83,17 +89,10 @@ import {util} from "../module_resources/utils.js"
 
 
     /** 
-     * Set the data_handler for data replay/simulation 
-     * @param {Function} f - The data handler function  
-     */
-    set_data_handler(f) { 
-	this.data_handler = f 
-    } 
-    
-    /** 
      * Start streaming the session that was previously loaded from localStorage 
      */
     start_stream(speed) { 
+	if (! this.stream_enabled ) { this.enable_stream() } 
 	this.stream_index =  0 
 	this.streaming = true 
 	this.playback_speed_multiplier = speed || 1 
@@ -104,7 +103,7 @@ import {util} from "../module_resources/utils.js"
     /** 
      * Stream single packet
      */
-    stream_single_packet() { 
+    stream_single() { 
 	if (this.stream_index < this.buffer_size  ) { 	
 	    //get the data
 	    var val = this.loaded_session[this.stream_index]
@@ -130,7 +129,7 @@ import {util} from "../module_resources/utils.js"
 	    //get the data
 	    var val = this.loaded_session[this.stream_index]
 	    //send the data
-	    this.data_handler(val) 
+	    this.trigger_input(val) 
 	    
 	    if (this.stream_index == this.buffer_size - 1 ) { 
 		//on the last data point  
@@ -263,7 +262,7 @@ function get_session(id) {
     }) 
     
     var merged = [].concat.apply([], tmp);
-    return merged 
+    return merged.map( util.dict_vals_2_num ) 
 }
 
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting started &mdash; WRTSM  documentation</title>
+  <title>Getting started &mdash; nFLOW  documentation</title>
   
 
   
@@ -47,7 +47,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> WRTSM
+            <a href="index.html" class="icon icon-home"> nFLOW
           
 
           
@@ -83,8 +83,13 @@
 <li class="toctree-l1"><a class="reference internal" href="modules.html">Modules</a></li>
 <li class="toctree-l1"><a class="reference internal" href="server_implementation.html">Server Implementation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#thing-1">Thing 1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#thing-2">Thing 2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tutorial">Tutorial</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#logging-simulated-motion-analysis-data">Logging Simulated Motion Analysis Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analyzing-and-altering-data-packets">Analyzing and Altering Data Packets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#vizualizing-data">Vizualizing Data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -101,7 +106,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">WRTSM</a>
+          <a href="index.html">nFLOW</a>
         
       </nav>
 
@@ -153,13 +158,134 @@
             
   <div class="section" id="getting-started">
 <span id="id1"></span><h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="thing-1">
-<span id="id2"></span><h2>Thing 1<a class="headerlink" href="#thing-1" title="Permalink to this headline">¶</a></h2>
-<p>foo</p>
+<div class="section" id="installation">
+<span id="id2"></span><h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>The nFLOW libary is located in the Github repository at dist/nflow.js. This tutorial assumes you have managed to load that file into your browser and have access to the nflow global object.</p>
 </div>
-<div class="section" id="thing-2">
-<span id="id3"></span><h2>Thing 2<a class="headerlink" href="#thing-2" title="Permalink to this headline">¶</a></h2>
-<p>foo</p>
+<div class="section" id="tutorial">
+<span id="id3"></span><h2>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h2>
+<p>Let’s dive in to how you can use nFLOW for real time signal analysis. We will be using motion analysis data which was pre-recorded using a commercial IMU (inertial measurement unit). The IMU was on the leg of a healthy walking patient. For prototyping puposes, nFLOW can simulate this data as if it is being received in real time. In this tutorial, we will create a pipeline for detecting when the  patients foot contacts and leaves the ground.</p>
+<div class="section" id="logging-simulated-motion-analysis-data">
+<h3>Logging Simulated Motion Analysis Data<a class="headerlink" href="#logging-simulated-motion-analysis-data" title="Permalink to this headline">¶</a></h3>
+<p>The first step is loading the sample data into a data_storage node, which will allow us to simulate the data packets arriving in real time.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">//1. Get the sample data from nflow lib</span>
+<span class="kd">let</span> <span class="nx">sample_walk</span> <span class="o">=</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">resources</span><span class="p">.</span><span class="nx">sample_walk</span>
+
+<span class="c1">//2. Create a data_storage node with session_id &#39;sample_walk&#39; which will hold the data</span>
+<span class="kd">let</span> <span class="nx">walk_simulator</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">data_storage</span><span class="p">(</span><span class="s2">&quot;sample_walk&quot;</span><span class="p">)</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">set_session</span><span class="p">(</span><span class="nx">sample_walk</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>At this point, we are almost ready to call <code class="code docutils literal notranslate"><span class="pre">walk_simulator.start_stream()</span></code>, however, we must first connect the walk_simulator to another node for vizualizing its output. Lets try a logger node so we can inspect what is coming out (via the dev console):</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">//3. Create logger node</span>
+<span class="kd">let</span> <span class="nx">logger_node</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">logger_node</span><span class="p">()</span>
+
+<span class="c1">//4. Connect the data_storage node to the logger node</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="nx">logger_node</span><span class="p">)</span>
+
+<span class="c1">//5. Start streaming data and stop after 1 second</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">start_stream</span><span class="p">()</span>
+<span class="nx">setTimeout</span><span class="p">(</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">stop_stream</span><span class="p">()</span> <span class="p">}</span> <span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You should see the logger node outputting the results of the stream from the walk_simulator node, like this:</p>
+<a class="reference internal image-reference" href="_images/tut_1.png"><img alt="_images/tut_1.png" src="_images/tut_1.png" style="width: 686.0px; height: 423.0px;" /></a>
+<p>Just with the code above, you have learned how to:</p>
+<ol class="arabic simple">
+<li>Create nFLOW nodes using <code class="code docutils literal notranslate"><span class="pre">new</span> <span class="pre">nflow.mods.MODULE_NAME()</span></code></li>
+<li>Connect nFLOW nodes using <code class="code docutils literal notranslate"><span class="pre">node_1.connect(node_2)</span></code></li>
+</ol>
+</div>
+<div class="section" id="analyzing-and-altering-data-packets">
+<h3>Analyzing and Altering Data Packets<a class="headerlink" href="#analyzing-and-altering-data-packets" title="Permalink to this headline">¶</a></h3>
+<p>Note that each data packet has several fields, including acceleration (acc) and gyroscope (gyr) in dimensions X, Y, and Z, as well as time in seconds and ‘dev’ or device ID. For now lets focus on the gyroscope Z data of device ‘B’, which gives us helpful information regarding walking. In order to isolate the aforementioned signal, we will use a <code class="file docutils literal notranslate"><span class="pre">transformer</span></code>. A transformer is a type of nFLOW <code class="file docutils literal notranslate"><span class="pre">node</span></code> which accepts data, applies a function to it, then relays it. Thus, we need a function which detects device ‘B’ and which accesses the gyr_z field of the packet:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Create the transformer</span>
+<span class="kd">let</span> <span class="nx">transformer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">transformer</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">payload</span><span class="p">)</span> <span class="p">{</span>
+   <span class="k">if</span> <span class="p">(</span><span class="nx">packet</span><span class="p">.</span><span class="nx">dev</span> <span class="o">==</span> <span class="s1">&#39;B&#39;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="p">{</span><span class="nx">gyr_z</span> <span class="o">:</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">gyr_z</span><span class="p">,</span> <span class="nx">dev</span> <span class="o">:</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">dev</span><span class="p">}</span>
+   <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">SKIP_PAYLOAD</span>
+   <span class="p">}</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+<p>It is important to note that the return value <code class="code docutils literal notranslate"><span class="pre">nflow.SKIP_PAYLOAD</span></code> results in the payload being dropped and not forwarded to any other nFLOW nodes.</p>
+<p>The next step is to put this transformer node between the walk_simulator and the logger node by modifying our code so far like this:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">//1. Get the sample data from nflow lib</span>
+<span class="kd">let</span> <span class="nx">sample_walk</span> <span class="o">=</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">resources</span><span class="p">.</span><span class="nx">sample_walk</span>
+
+<span class="c1">//2. Create a data_storage node with session_id &#39;sample_walk&#39; which will hold the data</span>
+<span class="kd">let</span> <span class="nx">walk_simulator</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">data_storage</span><span class="p">(</span><span class="s2">&quot;sample_walk&quot;</span><span class="p">)</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">set_session</span><span class="p">(</span><span class="nx">sample_walk</span><span class="p">)</span>
+
+<span class="c1">//3. Create logger node</span>
+<span class="kd">let</span> <span class="nx">logger_node</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">logger_node</span><span class="p">()</span>
+
+<span class="c1">//4. Create our transformer</span>
+<span class="kd">let</span> <span class="nx">transformer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">transformer</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">payload</span><span class="p">)</span> <span class="p">{</span>
+   <span class="k">if</span> <span class="p">(</span><span class="nx">payload</span><span class="p">.</span><span class="nx">dev</span> <span class="o">==</span> <span class="s1">&#39;B&#39;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="p">{</span><span class="nx">gyr_z</span> <span class="o">:</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">gyr_z</span> <span class="p">,</span> <span class="nx">dev</span> <span class="o">:</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">dev</span> <span class="p">}</span>
+   <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">SKIP_PAYLOAD</span>
+   <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="c1">//5. Connect the nodes together!</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="nx">transformer</span><span class="p">).</span><span class="nx">connect</span><span class="p">(</span><span class="nx">logger_node</span><span class="p">)</span>
+
+<span class="c1">//6. Start streaming data and stop after 1 second</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">start_stream</span><span class="p">()</span>
+<span class="nx">setTimeout</span><span class="p">(</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">stop_stream</span><span class="p">()</span> <span class="p">}</span> <span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You should see the output below. Note that only dev == ‘B’ and gyr_z make it through to the logger node.</p>
+<a class="reference internal image-reference" href="_images/tut_2.png"><img alt="_images/tut_2.png" src="_images/tut_2.png" style="width: 684.0px; height: 238.0px;" /></a>
+<p>Two new concepts to keep in mind:</p>
+<ol class="arabic simple">
+<li>Create a transformer node using <code class="code docutils literal notranslate"><span class="pre">new</span> <span class="pre">nflow.mods.transformer(TRANSFORMER_FUNCTION)</span></code></li>
+<li>Chain nFLOW nodes together using <code class="code docutils literal notranslate"><span class="pre">node_1.connect(node_2).connect(node_3)</span></code></li>
+</ol>
+</div>
+<div class="section" id="vizualizing-data">
+<h3>Vizualizing Data<a class="headerlink" href="#vizualizing-data" title="Permalink to this headline">¶</a></h3>
+<p>Ok, it is about time we make a graph, right? nFLOW makes this extremely easy by leveraging the Bokeh Javascript API.</p>
+<p>First, make sure there is an <cite>HTML DIV</cite> node  <code class="code docutils literal notranslate"><span class="pre">&lt;div</span> <span class="pre">id=&quot;nflow&quot;&gt;&lt;/div&gt;</span></code> available on your web page for nFLOW to graph into. The ID of the div (“nflow”) will be used to identify the container for graphing.</p>
+<p>Next, create an <code class="file docutils literal notranslate"><span class="pre">object_grapher_node</span></code> by using the following command:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">let</span> <span class="nx">grapher</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">ui_object_grapher</span><span class="p">({</span><span class="nx">container</span><span class="o">:</span><span class="s2">&quot;nflow&quot;</span><span class="p">,</span><span class="nx">exclude</span> <span class="o">:</span> <span class="p">[</span><span class="s2">&quot;dev&quot;</span><span class="p">]})</span>
+</pre></div>
+</div>
+<p>The <cite>exclude</cite> argument tells the object grapher to ignore the field “dev” in the payload (which is a string thus we do not want to graph it!)</p>
+<p>Can you guess how we will connect the incoming data to the grapher? See the completed code here:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span> <span class="c1">//1. Get the sample data from nflow lib</span>
+<span class="kd">let</span> <span class="nx">sample_walk</span> <span class="o">=</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">resources</span><span class="p">.</span><span class="nx">sample_walk</span>
+
+<span class="c1">//2. Create a data_storage node with session_id &#39;sample_walk&#39; which will hold the data</span>
+<span class="kd">let</span> <span class="nx">walk_simulator</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">data_storage</span><span class="p">(</span><span class="s2">&quot;sample_walk&quot;</span><span class="p">)</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">set_session</span><span class="p">(</span><span class="nx">sample_walk</span><span class="p">)</span>
+
+<span class="c1">//3. Create grapher</span>
+<span class="kd">let</span> <span class="nx">grapher</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">ui_object_grapher</span><span class="p">(</span> <span class="p">{</span><span class="nx">container</span> <span class="o">:</span> <span class="s2">&quot;nflow&quot;</span> <span class="p">,</span> <span class="nx">exclude</span> <span class="o">:</span> <span class="p">[</span><span class="s2">&quot;dev&quot;</span><span class="p">]}</span> <span class="p">)</span>
+
+<span class="c1">//4. Create our transformer</span>
+<span class="kd">let</span> <span class="nx">transformer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">transformer</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">payload</span><span class="p">)</span> <span class="p">{</span>
+   <span class="k">if</span> <span class="p">(</span><span class="nx">payload</span><span class="p">.</span><span class="nx">dev</span> <span class="o">==</span> <span class="s1">&#39;B&#39;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="p">{</span><span class="nx">gyr_z</span> <span class="o">:</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">gyr_z</span> <span class="p">,</span> <span class="nx">dev</span> <span class="o">:</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">dev</span> <span class="p">}</span>
+   <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">SKIP_PAYLOAD</span>
+   <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="c1">//5. Connect the nodes together!</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="nx">transformer</span><span class="p">).</span><span class="nx">connect</span><span class="p">(</span><span class="nx">grapher</span><span class="p">)</span>
+
+<span class="c1">//6. Start streaming data and stop after 10 seconds</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">start_stream</span><span class="p">()</span>
+<span class="nx">setTimeout</span><span class="p">(</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">stop_stream</span><span class="p">()</span> <span class="p">}</span> <span class="p">,</span> <span class="mi">10000</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You should see a real time graph, like this:</p>
+<a class="reference internal image-reference" href="_images/tut_3.gif"><img alt="_images/tut_3.gif" src="_images/tut_3.gif" style="width: 670.0px; height: 516.0px;" /></a>
+</div>
 </div>
 </div>
 

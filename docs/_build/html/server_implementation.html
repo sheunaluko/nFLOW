@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Server Implementation &mdash; WRTSM  documentation</title>
+  <title>Server Implementation &mdash; nFLOW  documentation</title>
   
 
   
@@ -48,7 +48,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> WRTSM
+            <a href="index.html" class="icon icon-home"> nFLOW
           
 
           
@@ -98,7 +98,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">WRTSM</a>
+          <a href="index.html">nFLOW</a>
         
       </nav>
 
@@ -151,7 +151,7 @@
   <div class="section" id="server-implementation">
 <span id="id1"></span><h1>Server Implementation<a class="headerlink" href="#server-implementation" title="Permalink to this headline">¶</a></h1>
 <p id="intro-text">The <a class="reference internal" href="modules.html#web-socket"><span class="std std-ref">Web Socket</span></a> class establishes a connection with a remote websocket server and must communicate with it using a predefined protocol, described here. It does so by sending data packets, each of which is a javascript object containing fields <cite>type</cite> and <cite>data</cite>, for example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="s2">&quot;control&quot;</span><span class="p">,</span> <span class="n">data</span> <span class="p">:</span> <span class="s2">&quot;stop&quot;</span><span class="p">}</span>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;control&quot;</span><span class="p">,</span> <span class="nx">data</span> <span class="o">:</span> <span class="s2">&quot;stop&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>Below is a table describing the appropriate server responses to various messages from the <a class="reference internal" href="modules.html#web-socket"><span class="std std-ref">Web Socket</span></a> class.</p>

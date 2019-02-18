@@ -1,16 +1,16 @@
 //Wed Oct  3 09:42:59 PDT 2018
 // I remembered my development mantra - be patient. simplify. Refactor when necessary 
 
-import {makeLogger} from "./logger.js"
 import ui from "./ui.js"
-import {util} from "../module_resources/utils.js"
+import * as util from "../module_resources/utils.js"
+import base_node from  "./base_node.js"
 
 /**
  * 
  * 
  */
 
-export default class state_machine {
+export default class state_machine extends base_node {
 
     /**
      * 
@@ -18,14 +18,22 @@ export default class state_machine {
      */ 
     constructor(opts) { 
 	var {buffer_size, gui_mode, debug_mode, init} = opts
-	this.log = makeLogger("SM") 
+	let node_name = "SM" 
+
+	super({node_name}) 
+	
+	let main_handler = function(payload) { 
+	    this.process_data(payload)  
+	}
+	
+	this.configure({main_handler}) 
 	this.buffer_size = buffer_size  || 200 
 	this.sensor_buffer_size = buffer_size 
 	this.buffer = Array(buffer_size).fill(default_data_obj)
 	this.sensors = {} 
 	this.transitioners = {} 
 	this.transitioner_groups = {} 
-	this.STATE  = init || {} 
+	if (init == undefined ) {this.STATE={}} else {this.STATE=init}
 	this.gui_mode = gui_mode 
 	this.debug_mode = debug_mode || false 
 	if (gui_mode) { 
@@ -37,6 +45,7 @@ export default class state_machine {
 	    //also create a ui object  
 	    this.ui = new ui(null) 
 	} 
+	
     } 
     
     
@@ -140,7 +149,7 @@ export default class state_machine {
 	 
 	*/
 	
-	if (val) { 
+	if (val != 0 || val != undefined || val != false || val != nflow.SKIP_PAYLOAD) { 
 	    //append the new value to the sensors buffer 
 	    this.sensors[id]["buffer"].push(val)
 	    this.sensors[id]["buffer"].shift() 
@@ -300,6 +309,7 @@ export default class state_machine {
 	if (this.gui_mode) { 
 	    // also we need to give an X coordinate for the data  
 	    // for now we will pass the 'time' value of the data obj 
+	    
 	    this.ui.handle_sensor_buffer(obj.time,this.sensors_gui_buffer)
 	}
 

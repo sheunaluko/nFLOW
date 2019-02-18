@@ -1,16 +1,16 @@
 //Wed Oct  3 09:42:59 PDT 2018
 // I remembered my development mantra - be patient. simplify. Refactor when necessary 
 
-import {makeLogger} from "./logger.js"
 import ui from "./ui.js"
 import {util} from "../module_resources/utils.js"
+import base_node from  "./base_node.js"
 
 /**
  * 
  * 
  */
 
- class state_machine {
+ class state_machine extends base_node {
 
     /**
      * 
@@ -18,8 +18,16 @@ import {util} from "../module_resources/utils.js"
      */ 
     constructor(opts) { 
 	var {buffer_size, gui_mode, debug_mode, init} = opts
-	this.log = makeLogger("SM") 
-	this.buffer_size = buffer_size 
+	let node_name = "SM" 
+
+	super({node_name}) 
+	
+	let main_handler = function(payload) { 
+	    this.process_data(payload)  
+	}
+	
+	this.configure({main_handler}) 
+	this.buffer_size = buffer_size  || 200 
 	this.sensor_buffer_size = buffer_size 
 	this.buffer = Array(buffer_size).fill(default_data_obj)
 	this.sensors = {} 
@@ -37,6 +45,7 @@ import {util} from "../module_resources/utils.js"
 	    //also create a ui object  
 	    this.ui = new ui(null) 
 	} 
+	
     } 
     
     
@@ -78,7 +87,7 @@ import {util} from "../module_resources/utils.js"
     
     /** 
      * Adds a sensor to the state machine. 
-     * @param {Object} opts - contains id, f (function) , graph (if gui_mode). Graph should be id of the graph that the sensor should be graphed on 
+     * @param {Object} opts - contains id, f (function) , level (level 0 is evaluated first , then 1, etc.. ) 
      */
     add_sensor(opts) { 
 	var id,f,l
@@ -110,7 +119,8 @@ import {util} from "../module_resources/utils.js"
 	//loop through the graphs 
 	for (var graph in this.ui_mapping )  { 
 	    var sensors = this.ui_mapping[graph] 
-	    this.ui.add_graph(graph, sensors)  // initializes a graph 
+	    var opts = {id : graph ,series_vector : sensors}     /// POTENTIAL BUG ON NEXT RUN  !? UNLESS FIX IS GOLDEN FIX
+	    this.ui.add_graph(opts)  // initializes a graph 
 	} 
 	
 	//after all the graphs have been added then we call init 

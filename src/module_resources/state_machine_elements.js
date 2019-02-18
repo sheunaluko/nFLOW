@@ -14,9 +14,8 @@ var sme = { sensors : { dev_a : {} , dev_b : {} } ,
 //extract a specific field from the data objects 
 //i.e. [{:acc_x :acc_y... } , ... ] => [ acc_x, acc_x ... ] 
 sme.sensors.field = function(field) { 
-    return function(d) { 
-	d = d.buffer 
-	return util.last(buffer)[field] 
+    return function(sm) { 
+	return util.last(sm.buffer)[field] 
     }
 } 
 

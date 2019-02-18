@@ -1,5 +1,6 @@
 import {params} from "../module_resources/global_params.js" 
-import {util}     from "../module_resources/utils.js" 
+import * as util     from "../module_resources/utils.js" 
+import base_node  from "./base_node.js"
 
 
 
@@ -150,9 +151,10 @@ class Graph {
 	this.parent = null 
 	this.opts = opts
 	this.series_vector = series_vector 
-	console.log("Graph with Len : " + opts.x_len)
+	var x_len = opts.x_len || params.global_x_len 
+	console.log("Graph with Len : " + x_len)
 	
-	var multi_opts = { x_len : opts.x_len || params.global_x_len , 
+	var multi_opts = { x_len : x_len,
 			   title : title ,
 			   series_array : series_vector } 
 	
@@ -294,7 +296,6 @@ export default class ui {
 	    //update the graph 
 	    
 	    bokeh_multi_stream(this.graphs[graph].get_data_source(), x , ys )
-
 	    
 	}
 
@@ -305,8 +306,7 @@ export default class ui {
 	create_static_multi_line_graph(container, opts) 
     }
     
-    
-    
+
 }
 
 
@@ -328,3 +328,115 @@ var app_render = function(container,el) {
 	app_el = container
     }
 }
+
+
+// FOR ARBITRARY GRAPHING -----------------------------------------------                                                   
+function dict_to_update(dict) { 
+    return dict 
+}
+
+function get_array_series(o) {
+    //console.log(o)
+    return util.range(0,o.length).map(v=>"index_" + v)
+}
+
+function get_dict_series(d) { 
+    var ret
+    var list = Object.keys(d) 
+    //return list   -- allows toggling the removal of time key from object
+    var ind = list.indexOf('time') 
+    if (ind >= 0 ) { 
+	list.splice(ind , 1 ) 
+	ret = list 
+    } else { ret = list } 
+    return ret 
+} 
+
+function array_to_update(arr) { 
+    let ser = get_array_series(arr)
+    return util.zip_map(ser, arr)
+}
+
+
+function make_graph_for_obj(opts) { 
+    var {o, container, x_len, exclude} = opts 
+    
+    //delete the fields which we want to exclude from the graph 
+    //note this only occurs on the first object processed 
+    if (exclude) { 
+	for (var i of exclude) { 
+	    delete o[i]
+	} 
+    }
+    
+    var graph_ui = new ui()
+    var series   = null 
+    //console.log(o)
+    if (typeof o == "object") { 
+	if (Array.isArray(o)) {
+	    // its an array
+	    console.log("Making array grapher")
+	    series = get_array_series(o) 
+	    graph_ui.convert = array_to_update
+	} else {
+	    // assume its a dict
+	    console.log("Making dict grapher")
+	    series = get_dict_series(o) 
+	    graph_ui.convert = dict_to_update
+	}
+    }
+    
+    graph_ui.add_graph({id  :"main", series_vector:  series, x_len : x_len || 500})
+    graph_ui.init(container) 
+    graph_ui.init_time = util.now()
+    return graph_ui 
+}
+
+
+function graph_object(x,o,graph_ui) { 
+    let updates = graph_ui.convert(o) 
+    //console.log(updates)
+    //apply the updates to the graph 
+    graph_ui.handle_sensor_buffer((x-graph_ui.init_time)/1000,updates)  // should work???
+}
+
+
+function get_object_grapher(opts) { 
+    var {container, x_len, exclude} = opts 
+    var grapher = {}
+    grapher.init = true 
+    grapher.graph_ui = null 
+    
+    grapher.process_data = function(o) { 
+	if (grapher.init) { 
+	    grapher.graph_ui = make_graph_for_obj({o,container,x_len,exclude})
+	    grapher.init = false 
+	} else { 
+	    var t = util.now()
+	    //console.log(o)
+	    graph_object(t,o,grapher.graph_ui)
+	}
+    }
+    
+    return grapher
+}
+
+
+export class ui_object_grapher extends base_node { 
+    constructor(opts) { 
+	let node_name = "UIG"
+	let is_sink = true 
+	super({node_name, is_sink })
+	
+	let main_handler = function(payload) { 
+	    if (true) { 
+		this.object_grapher.process_data(payload) 
+	    }
+	} 
+	this.configure({main_handler}) 
+	this.object_grapher = get_object_grapher(opts) 	
+
+	
+    } 
+} 
+

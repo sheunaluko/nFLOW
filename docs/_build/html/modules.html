@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Modules &mdash; WRTSM  documentation</title>
+  <title>Modules &mdash; nFLOW  documentation</title>
   
 
   
@@ -48,7 +48,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> WRTSM
+            <a href="index.html" class="icon icon-home"> nFLOW
           
 
           
@@ -82,10 +82,13 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#base-node">Base Node</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#web-socket">Web Socket</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pipe-manager">Pipe Manager</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#raw-analyzer">Raw Analyzer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#data-storage">Data Storage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#transformer">Transformer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#event-detector">Event Detector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#logger">Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#simulator">Simulator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#state-machine">State Machine</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#sensors">Sensors</a></li>
 </ul>
@@ -108,7 +111,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">WRTSM</a>
+          <a href="index.html">nFLOW</a>
         
       </nav>
 
@@ -160,9 +163,55 @@
             
   <div class="section" id="modules">
 <span id="id1"></span><h1>Modules<a class="headerlink" href="#modules" title="Permalink to this headline">¶</a></h1>
+<p>In the spirit of modular software, and since nFLOW consists of a network of <code class="file docutils literal notranslate"><span class="pre">nodes</span></code> piping and analyzing signals in realtime, the <code class="file docutils literal notranslate"><span class="pre">base_node</span></code> class was created to collect shared <code class="file docutils literal notranslate"><span class="pre">node</span></code> attributes into an inheritable structure. It is described below.  Most of the classes described below inherit from <code class="file docutils literal notranslate"><span class="pre">base_node</span></code>, though some may override certain methods.</p>
+<div class="section" id="base-node">
+<span id="id2"></span><h2>Base Node<a class="headerlink" href="#base-node" title="Permalink to this headline">¶</a></h2>
+<p>Defined in <code class="file docutils literal notranslate"><span class="pre">base_node.js</span></code>. The base class from which all node instances inherit.</p>
+<dl class="class">
+<dt id="base_node">
+<em class="property">class </em><code class="descname">base_node</code><span class="sig-paren">(</span><em>opts</em><span class="sig-paren">)</span><a class="headerlink" href="#base_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for defining wrtsm nodes</p>
+<dl class="function">
+<dt id="base_node.connect">
+<code class="descclassname">base_node.</code><code class="descname">connect</code><span class="sig-paren">(</span><em>sink</em>, <em>opts</em><span class="sig-paren">)</span><a class="headerlink" href="#base_node.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect node to another node</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sink</strong> (<a class="reference internal" href="#base_node" title="base_node"><em>base_node</em></a>) – Node to connect to</li>
+<li><strong>opts</strong> (<em>obj</em>) – Contains {output_port = “main_output”,input_port = “main_input”}</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="base_node.process_packet">
+<code class="descclassname">base_node.</code><code class="descname">process_packet</code><span class="sig-paren">(</span><em>packet</em><span class="sig-paren">)</span><a class="headerlink" href="#base_node.process_packet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generic packet processor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>packet</strong> (<em>Dict</em>) – contains { input_port , payload }</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="web-socket">
-<span id="id2"></span><h2>Web Socket<a class="headerlink" href="#web-socket" title="Permalink to this headline">¶</a></h2>
-<p>Defined in <code class="file docutils literal notranslate"><span class="pre">web_socket.js</span></code> and consists of a javascript class which handles accessing an incoming raw data stream.</p>
+<span id="id3"></span><h2>Web Socket<a class="headerlink" href="#web-socket" title="Permalink to this headline">¶</a></h2>
+<p>Inherits from <code class="file docutils literal notranslate"><span class="pre">base_node</span></code>. Defined in <code class="file docutils literal notranslate"><span class="pre">web_socket.js</span></code> and consists of a javascript class which handles accessing an incoming raw data stream.</p>
 <dl class="class">
 <dt id="web_socket">
 <em class="property">class </em><code class="descname">web_socket</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="headerlink" href="#web_socket" title="Permalink to this definition">¶</a></dt>
@@ -202,134 +251,12 @@ as “client” with the server, enables streaming, and this.logs to console.</p
 </table>
 </dd></dl>
 
-<dl class="function">
-<dt id="web_socket.set_data_handler">
-<code class="descclassname">web_socket.</code><code class="descname">set_data_handler</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="headerlink" href="#web_socket.set_data_handler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the data_handler attribute, which determines what the socket does to incomin data.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>func</strong> (<em>function</em>) – Function which accepts ONE raw data object {..} and processes it.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="web_socket.start_stream">
-<code class="descclassname">web_socket.</code><code class="descname">start_stream</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#web_socket.start_stream" title="Permalink to this definition">¶</a></dt>
-<dd><p>Start accepting incoming raw data objects.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="web_socket.stop_stream">
-<code class="descclassname">web_socket.</code><code class="descname">stop_stream</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#web_socket.stop_stream" title="Permalink to this definition">¶</a></dt>
-<dd><p>Stop accepting incoming raw data objects.</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="pipe-manager">
-<span id="id3"></span><h2>Pipe Manager<a class="headerlink" href="#pipe-manager" title="Permalink to this headline">¶</a></h2>
-<p>Defined in <code class="file docutils literal notranslate"><span class="pre">pipe_manager.js</span></code>.</p>
-<dl class="class">
-<dt id="pipe_manager">
-<em class="property">class </em><code class="descname">pipe_manager</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pipe_manager" title="Permalink to this definition">¶</a></dt>
-<dd><p>Manages the flow of streaming data between various modules of RoseGait
-e.g. pipe_manager.connect(web_socket, data_storage)</p>
-<dl class="function">
-<dt id="pipe_manager.connect">
-<code class="descclassname">pipe_manager.</code><code class="descname">connect</code><span class="sig-paren">(</span><em>from</em>, <em>to</em><span class="sig-paren">)</span><a class="headerlink" href="#pipe_manager.connect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Connects a streaming output data source to a streaming input source.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>from</strong> (<em>Object</em>) – data source (emits data). Must implement method <cite>set_data_handler</cite> and have member default_handler</li>
-<li><strong>to</strong> (<em>Object</em>) – data sink   (consumes data). Must implement method <cite>process_data</cite></li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="pipe_manager.disconnect">
-<code class="descclassname">pipe_manager.</code><code class="descname">disconnect</code><span class="sig-paren">(</span><em>from</em>, <em>to</em><span class="sig-paren">)</span><a class="headerlink" href="#pipe_manager.disconnect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Disconnects a streaming output data source from a streaming input source.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>from</strong> (<em>Object</em>) – data source (emits data). Must implement method <cite>set_data_handler</cite> and have member default_handler</li>
-<li><strong>to</strong> (<em>Object</em>) – data sink   (consumes data). Must implement method <cite>process_data</cite></li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="raw-analyzer">
-<span id="id4"></span><h2>Raw Analyzer<a class="headerlink" href="#raw-analyzer" title="Permalink to this headline">¶</a></h2>
-<p>Defined in <code class="file docutils literal notranslate"><span class="pre">raw_analyzer.js</span></code>.</p>
-<dl class="class">
-<dt id="raw_analyzer">
-<em class="property">class </em><code class="descname">raw_analyzer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#raw_analyzer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Provides insights and attributes about raw data stream.
-e.g. checks for dropped samples</p>
-<dl class="function">
-<dt id="raw_analyzer.dist_field">
-<code class="descclassname">raw_analyzer.</code><code class="descname">dist_field</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#raw_analyzer.dist_field" title="Permalink to this definition">¶</a></dt>
-<dd><p>(UNSTABLE ) Show ditribution for field</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="raw_analyzer.line_field">
-<code class="descclassname">raw_analyzer.</code><code class="descname">line_field</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#raw_analyzer.line_field" title="Permalink to this definition">¶</a></dt>
-<dd><p>(UNSTABLE) Show time series for field</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="raw_analyzer.process_data">
-<code class="descclassname">raw_analyzer.</code><code class="descname">process_data</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#raw_analyzer.process_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Processes a data packet</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>obj</strong> (<em>Object</em>) – Data object to process</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="raw_analyzer.produce_report">
-<code class="descclassname">raw_analyzer.</code><code class="descname">produce_report</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#raw_analyzer.produce_report" title="Permalink to this definition">¶</a></dt>
-<dd><p>Produce report (logged to console for now)</p>
-</dd></dl>
-
 </dd></dl>
 
 </div>
 <div class="section" id="data-storage">
-<span id="id5"></span><h2>Data Storage<a class="headerlink" href="#data-storage" title="Permalink to this headline">¶</a></h2>
-<p>Defined in <code class="file docutils literal notranslate"><span class="pre">data_storage.js</span></code>.</p>
+<span id="id4"></span><h2>Data Storage<a class="headerlink" href="#data-storage" title="Permalink to this headline">¶</a></h2>
+<p>Inherits from <code class="file docutils literal notranslate"><span class="pre">base_node</span></code>. Defined in <code class="file docutils literal notranslate"><span class="pre">data_storage.js</span></code>.</p>
 <dl class="class">
 <dt id="data_storage">
 <em class="property">class </em><code class="descname">data_storage</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#data_storage" title="Permalink to this definition">¶</a></dt>
@@ -361,40 +288,6 @@ e.g. checks for dropped samples</p>
 <dt id="data_storage.load_session">
 <code class="descclassname">data_storage.</code><code class="descname">load_session</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.load_session" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads a data storage session from localStorage. Returns Array.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="data_storage.process_data">
-<code class="descclassname">data_storage.</code><code class="descname">process_data</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.process_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Main data handler. Will append the incoming data to the data_history array</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>obj</strong> (<em>Object</em>) – The data obj to add</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="data_storage.set_data_handler">
-<code class="descclassname">data_storage.</code><code class="descname">set_data_handler</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.set_data_handler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the data_handler for data replay/simulation</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>f</strong> (<em>function</em>) – The data handler function</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="function">
@@ -439,8 +332,8 @@ e.g. checks for dropped samples</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="data_storage.stream_single_packet">
-<code class="descclassname">data_storage.</code><code class="descname">stream_single_packet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.stream_single_packet" title="Permalink to this definition">¶</a></dt>
+<dt id="data_storage.stream_single">
+<code class="descclassname">data_storage.</code><code class="descname">stream_single</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.stream_single" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stream single packet</p>
 </dd></dl>
 
@@ -465,9 +358,152 @@ e.g. checks for dropped samples</p>
 </dd></dl>
 
 </div>
+<div class="section" id="transformer">
+<span id="transformer-node"></span><h2>Transformer<a class="headerlink" href="#transformer" title="Permalink to this headline">¶</a></h2>
+<p>Inherits from <code class="file docutils literal notranslate"><span class="pre">base_node</span></code>. Defined in <code class="file docutils literal notranslate"><span class="pre">transformer.js</span></code>.</p>
+<dl class="class">
+<dt id="transformer">
+<em class="property">class </em><code class="descname">transformer</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#transformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies a transformation function to a data stream</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>f</strong> (<em>function</em>) – The function to use as transform</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="function">
+<dt id="transformer.set_transformer">
+<code class="descclassname">transformer.</code><code class="descname">set_transformer</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="headerlink" href="#transformer.set_transformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the transformer function</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>func</strong> (<em>function</em>) – Function which accepts ONE raw data object and transforms it.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="event-detector">
+<span id="id5"></span><h2>Event Detector<a class="headerlink" href="#event-detector" title="Permalink to this headline">¶</a></h2>
+<p>Inherits from <code class="file docutils literal notranslate"><span class="pre">base_node</span></code>. Defined in <code class="file docutils literal notranslate"><span class="pre">event_detector.js</span></code>.</p>
+<dl class="class">
+<dt id="event_detector">
+<em class="property">class </em><code class="descname">event_detector</code><span class="sig-paren">(</span><em>opts</em><span class="sig-paren">)</span><a class="headerlink" href="#event_detector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detects and emits deviation “events” from streams of arbitraty data objects</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>opts</strong> (<em>Object</em>) – configuration options</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="function">
+<dt id="event_detector.check_baseline">
+<code class="descclassname">event_detector.</code><code class="descname">check_baseline</code><span class="sig-paren">(</span><em>detected</em><span class="sig-paren">)</span><a class="headerlink" href="#event_detector.check_baseline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Statefully checks if detector is at baseline</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>detected</strong> (<em>Boolean</em>) – result of this.detect()</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="event_detector.flush_event">
+<code class="descclassname">event_detector.</code><code class="descname">flush_event</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#event_detector.flush_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flush current event to the event buffer</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="event_detector.init_event">
+<code class="descclassname">event_detector.</code><code class="descname">init_event</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#event_detector.init_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initiate event</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="event_detector.init_history_buffer">
+<code class="descclassname">event_detector.</code><code class="descname">init_history_buffer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#event_detector.init_history_buffer" title="Permalink to this definition">¶</a></dt>
+<dd><p>init history buffer</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="event_detector.process_data">
+<code class="descclassname">event_detector.</code><code class="descname">process_data</code><span class="sig-paren">(</span><em>Data</em><span class="sig-paren">)</span><a class="headerlink" href="#event_detector.process_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a received data object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Data</strong> (<em>obj</em>) – object to receive</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="logger">
+<span id="logger-node"></span><h2>Logger<a class="headerlink" href="#logger" title="Permalink to this headline">¶</a></h2>
+<p>Inherits from <code class="file docutils literal notranslate"><span class="pre">base_node</span></code>. Defined in <code class="file docutils literal notranslate"><span class="pre">logger_node.js</span></code>.</p>
+<dl class="class">
+<dt id="logger_node">
+<em class="property">class </em><code class="descname">logger_node</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#logger_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs whatever it receives</p>
+</dd></dl>
+
+</div>
+<div class="section" id="simulator">
+<span id="simulator-node"></span><h2>Simulator<a class="headerlink" href="#simulator" title="Permalink to this headline">¶</a></h2>
+<p>Inherits from <code class="file docutils literal notranslate"><span class="pre">base_node</span></code>. Defined in <code class="file docutils literal notranslate"><span class="pre">simulator.js</span></code>.</p>
+<dl class="class">
+<dt id="simulator">
+<em class="property">class </em><code class="descname">simulator</code><span class="sig-paren">(</span><em>opts</em><span class="sig-paren">)</span><a class="headerlink" href="#simulator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulator node for testing data streams</p>
+<dl class="function">
+<dt id="simulator.disable_stream">
+<code class="descclassname">simulator.</code><code class="descname">disable_stream</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simulator.disable_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop streaming data</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="simulator.enable_stream">
+<code class="descclassname">simulator.</code><code class="descname">enable_stream</code><span class="sig-paren">(</span><em>r</em><span class="sig-paren">)</span><a class="headerlink" href="#simulator.enable_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>enable streaming simulated data</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="state-machine">
 <span id="state-machine-utils"></span><h2>State Machine<a class="headerlink" href="#state-machine" title="Permalink to this headline">¶</a></h2>
-<p>Defined in <code class="file docutils literal notranslate"><span class="pre">state_machine.js</span></code>. This class encapsulates functionality for configuration and implementation of a state machine detection system.</p>
+<p>Inherits from <code class="file docutils literal notranslate"><span class="pre">base_node</span></code>. Defined in <code class="file docutils literal notranslate"><span class="pre">state_machine.js</span></code>. This class encapsulates functionality for configuration and implementation of a state machine detection system.</p>
 <p>Broadly, the architecture consists of a <cite>buffer</cite> which holds the last <cite>buffer_size</cite> streaming values received. Each time a new data packet is received it is appended to the buffer and the oldest value is dropped.</p>
 <p>Below are definitions of key components of the architecture:</p>
 <table border="1" class="docutils">
@@ -504,15 +540,15 @@ e.g. checks for dropped samples</p>
 <li>Declarative style specification of graphing derived values in realtime (i.e specify which Sensors should be graphed)</li>
 </ul>
 <p>For example, a Sensor which calculates the diff of an incoming voltage signal would look like the following:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">diff</span><span class="p">(</span><span class="n">state_machine</span><span class="p">)</span> <span class="p">{</span>
-   <span class="n">var</span> <span class="n">buffer</span> <span class="o">=</span> <span class="n">state_machine</span><span class="o">.</span><span class="n">buffer</span>
-   <span class="n">var</span> <span class="nb">len</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">length</span>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">function</span> <span class="nx">diff</span><span class="p">(</span><span class="nx">state_machine</span><span class="p">)</span> <span class="p">{</span>
+   <span class="kd">var</span> <span class="nx">buffer</span> <span class="o">=</span> <span class="nx">state_machine</span><span class="p">.</span><span class="nx">buffer</span>
+   <span class="kd">var</span> <span class="nx">len</span> <span class="o">=</span> <span class="nx">buffer</span><span class="p">.</span><span class="nx">length</span>
 
-   <span class="o">//</span><span class="ow">in</span> <span class="n">general</span><span class="p">,</span> <span class="n">the</span> <span class="n">buffer</span> <span class="n">consists</span> <span class="n">of</span> <span class="n">data</span> <span class="n">objects</span><span class="p">,</span> <span class="n">which</span> <span class="n">have</span> <span class="n">fields</span> <span class="n">of</span> <span class="n">interest</span>
-   <span class="o">//</span><span class="k">for</span> <span class="n">example</span><span class="p">,</span> <span class="k">if</span> <span class="n">we</span> <span class="n">are</span> <span class="n">interested</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">voltage</span> <span class="n">measurement</span> <span class="k">for</span> <span class="n">each</span> <span class="n">data</span> <span class="n">packet</span><span class="o">...</span>
-   <span class="n">var</span> <span class="n">voltages</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">map</span><span class="p">(</span> <span class="n">e</span> <span class="o">=&gt;</span> <span class="n">e</span><span class="p">[</span><span class="s1">&#39;voltage&#39;</span><span class="p">]</span> <span class="p">)</span>
+   <span class="c1">//in general, the buffer consists of data objects, which have fields of interest</span>
+   <span class="c1">//for example, if we are interested in the voltage measurement for each data packet...</span>
+   <span class="kd">var</span> <span class="nx">voltages</span> <span class="o">=</span> <span class="nx">buffer</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span> <span class="nx">e</span> <span class="p">=&gt;</span> <span class="nx">e</span><span class="p">[</span><span class="s1">&#39;voltage&#39;</span><span class="p">]</span> <span class="p">)</span>
 
-   <span class="k">return</span> <span class="n">voltages</span><span class="p">[</span><span class="nb">len</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">voltages</span><span class="p">[</span><span class="nb">len</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>   <span class="o">//</span><span class="n">returns</span> <span class="n">the</span> <span class="n">diff</span> <span class="n">of</span> <span class="n">the</span> <span class="n">last</span> <span class="n">two</span> <span class="n">values</span>
+   <span class="k">return</span> <span class="nx">voltages</span><span class="p">[</span><span class="nx">len</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="nx">voltages</span><span class="p">[</span><span class="nx">len</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>   <span class="c1">//returns the diff of the last two values</span>
 <span class="p">}</span>
 </pre></div>
 </div>

@@ -1,1 +1,1 @@
-parcel build src/index.js -o wrtsm.js
+parcel build src/index.js -o nflow.js

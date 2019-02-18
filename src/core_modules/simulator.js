@@ -1,60 +1,64 @@
 // Thu Nov  8 18:55:08 PST 2018
 
-import {makeLogger} from "./logger.js"
-import util from "../module_resources/utils.js"
+import base_node from  "./base_node.js"
 
 /**
  * Simulator node for testing data streams
  *
  */
-export default class simulator {
+export default class simulator extends base_node {
     
     constructor(opts) { 
 	
-	this.opts  = opts
+	let node_name = "SIM" 
+	let is_source = true 
+	let dev_mode = false 
+	super({node_name, is_source, dev_mode})  
 	
-	this.log = makeLogger("SIM")
-	this.mode = opts.mode 
-	this.default_handler = function(data) { 
-	    return null 
+	let main_handler = function(payload) { 
+	    return payload //just forwards the data it generates 
 	} 
-	this.data_handler = this.default_handler 
+	
+	this.configure({main_handler}) 
+	
+	this.opts  = opts
+	this.mode = opts.mode 
 	this.stream_interval = null 
-	//this.load_time = (new Date()).getTime() 
+	      
     } 
 
-    /** 
-     * Sets the data_handler attribute
-     * @param {Function} func - Function which accepts ONE raw data object and processes it.
-     */ 
-    set_data_handler(func) { 
-	this.data_handler = func 
-    }
-
     /**
-     * Start streaming simulated data 
+     * enable streaming simulated data 
      * 
      */
+    enable_stream(r) { 
+	let rate = r || 500 
+	this.stream_interval = setInterval( (this.send_val).bind(this) , rate ) 
+	
+    }
+    
     start_stream(r) { 
-	this.stream_interval = setInterval( (this.send_val).bind(this) , r ) 
+	this.streaming = true 
+	this.enable_stream(r) 
 	
     }
     
     /** 
      * Stop streaming data 
      */ 
-    stop_stream() { 
+    disable_stream() { 
 	clearInterval(this.stream_interval) 
     }
     
     send_val() { 
+	
 	var val  ; 
 	switch (this.opts.mode)  { 
 	case 'sin' : 
-	    val  = Math.sin ( (new Date().getTime()) * this.opts.rate )
+	    val  = { val :  Math.sin ( (new Date().getTime()) * (this.opts.rate || 0.001) )}
 	    break  ; 
 	case 'rand' : 
-	    val = (this.opts.multiplier || 1 ) * Math.random() + (this.opts.offset || 0 ) 
+	    val = { val : (this.opts.multiplier || 1 ) * Math.random() + (this.opts.offset || 0 ) } 
 	    break ; 
 	case 'burst' : 
 
@@ -70,7 +74,7 @@ export default class simulator {
 	    break ;
 	} 
 	
-	this.data_handler(val) 
+	this.trigger_input(val)  // send the val ! 
     } 
        
 }

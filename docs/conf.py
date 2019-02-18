@@ -19,7 +19,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'WRTSM'
+project = 'nFLOW'
 copyright = '2018, Sheun Aluko'
 author = 'Sheun Aluko'
 
@@ -67,6 +67,7 @@ language = None
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
+highlight_language = 'javascript'
 pygments_style = None
 
 

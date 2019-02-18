@@ -1,5 +1,6 @@
 import {params} from "../module_resources/global_params.js" 
 import {util}     from "../module_resources/utils.js" 
+import base_node  from "./base_node.js"
 
 
 
@@ -11,6 +12,50 @@ function make_x_series(len) {
     return util.range(-len, 0).map( x => x/100 ) // the /100 is hax for now for streaming
 }
 
+function create_static_multi_line_graph(container,opts) { 
+	var { xs, ys , title  } = opts 
+	
+	//will use indeces for x arrays if not provided 
+	if (! xs ) { 
+		xs =  [] 
+		for (var i =0; i< ys.length ; i ++)  { 
+			xs.push(util.range(0, ys[0].length ) ) 
+		}
+	}
+
+	var source = new Bokeh.ColumnDataSource( {
+	data : {xs : xs, ys : ys }
+    })
+    
+    // make the plot and add some tools
+    //var tools = "pan,crosshair,wheel_zoom,box_zoom,reset,save";
+
+    // WOW ! -- how lucky to find sizing_mode : stretch_both lmao 
+    // https://github.com/bokeh/bokeh/issues/4958
+    
+    var p = Bokeh.Plotting.figure({ title: title,sizing_mode : 'stretch_both' })
+    
+    //add the multiline 
+    var glyph = p.multi_line({ field: "xs" }, { field: "ys" }, {
+		source: source,
+		line_color: util.get_colors(xs.length)
+    }) 
+    
+    var tooltips = [
+	["x"    , "$x" ]  , 
+	["y"    , "$y" ] 
+    ]
+
+    p.add_tools(new Bokeh.HoverTool({tooltips : tooltips , line_policy : "next"} ) ) 
+	
+	var el = container
+	if (typeof container == 'string') { 
+		el = document.getElementById(container)
+	}
+	while  (el.firstChild) { el.removeChild(el.firstChild)}
+	Bokeh.Plotting.show(p, el)
+    return { plot : p , glyph : glyph , source : source } 
+} 
 
 function create_multi_line_graph(opts) { 
     var { x_len, series_array, title  } = opts 
@@ -104,10 +149,11 @@ class Graph {
     constructor(opts) { 
 	var {series_vector, title } = opts 
 	this.parent = null 
+	this.opts = opts
 	this.series_vector = series_vector 
-
+	console.log("Graph with Len : " + opts.x_len)
 	
-	var multi_opts = { x_len : params.global_x_len , 
+	var multi_opts = { x_len : opts.x_len || params.global_x_len , 
 			   title : title ,
 			   series_array : series_vector } 
 	
@@ -154,11 +200,13 @@ class Graph {
 
     /* 
      * Add graph to the ui 
-     * @param {String} id - graph id 
-     * @param {Vector} series_vector - Ids for series which will be graphed on this graph 
+     * @param {Object} opts - Dict containing fields: id - graph id , series_vector - vector of Ids for series which will be graphed on this graph 
      */
-    add_graph(id, series_vector) { 
+    add_graph(opts) { 
+	var {id, series_vector, x_len} = opts
+	//console.log(series_vector)
 	var graph = new Graph( {series_vector : series_vector, 
+				x_len : x_len , 
 				title  : id + ": " + series_vector.join(", ")} )   
 			       
 	this.graphs[id] = graph 
@@ -252,10 +300,13 @@ class Graph {
 	}
 
     }
+	
+	
+    static multi_line_graph(container, opts) { 
+	create_static_multi_line_graph(container, opts) 
+    }
     
-    
-    
-    
+
 }
 
 
@@ -277,3 +328,104 @@ var app_render = function(container,el) {
 	app_el = container
     }
 }
+
+
+// FOR ARBITRARY GRAPHING -----------------------------------------------                                                   
+function dict_to_update(dict) { 
+    return dict 
+}
+
+function get_array_series(o) {
+    //console.log(o)
+    return util.range(0,o.length).map(v=>"index_" + v)
+}
+
+function get_dict_series(d) { 
+    var ret
+    var list = Object.keys(d) 
+    //return list   -- allows toggling the removal of time key from object
+    var ind = list.indexOf('time') 
+    if (ind >= 0 ) { 
+	list.splice(ind , 1 ) 
+	ret = list 
+    } else { ret = list } 
+    return ret 
+} 
+
+function array_to_update(arr) { 
+    let ser = get_array_series(arr)
+    return util.zip_map(ser, arr)
+}
+
+
+function make_graph_for_obj(opts) { 
+    var {o, container, x_len} = opts 
+    var graph_ui = new ui()
+    var series   = null 
+    //console.log(o)
+    if (typeof o == "object") { 
+	if (Array.isArray(o)) {
+	    // its an array
+	    console.log("Making array grapher")
+	    series = get_array_series(o) 
+	    graph_ui.convert = array_to_update
+	} else {
+	    // assume its a dict
+	    console.log("Making dict grapher")
+	    series = get_dict_series(o) 
+	    graph_ui.convert = dict_to_update
+	}
+    }
+    
+    graph_ui.add_graph({id  :"main", series_vector:  series, x_len : x_len || 500})
+    graph_ui.init(container) 
+    graph_ui.init_time = util.now()
+    return graph_ui 
+}
+
+
+function graph_object(x,o,graph_ui) { 
+    let updates = graph_ui.convert(o) 
+    //console.log(updates)
+    //apply the updates to the graph 
+    graph_ui.handle_sensor_buffer((x-graph_ui.init_time)/1000,updates)  // should work???
+}
+
+
+function get_object_grapher(opts) { 
+    var {container, x_len} = opts 
+    var grapher = {}
+    grapher.init = true 
+    grapher.graph_ui = null 
+    
+    grapher.process_data = function(o) { 
+	if (grapher.init) { 
+	    grapher.graph_ui = make_graph_for_obj({o,container,x_len})
+	    grapher.init = false 
+	} else { 
+	    var t = util.now()
+	    //console.log(o)
+	    graph_object(t,o,grapher.graph_ui)
+	}
+    }
+    
+    return grapher
+}
+
+
+ class ui_object_grapher extends base_node { 
+    constructor(opts) { 
+	let node_name = "UIG"
+	let is_sink = true 
+	super({node_name, is_sink })
+	
+	let main_handler = function(payload) { 
+	    this.object_grapher.process_data(payload) 
+	} 
+	this.configure({main_handler}) 
+	this.object_grapher = get_object_grapher(opts) 	
+
+	
+    } 
+} 
+

@@ -21,6 +21,9 @@ import {makeLogger} from "./logger.js"
      */ 
     connect(from, to) { 
 	from.set_data_handler(  (function(d) {to.process_data(d)}).bind(to) ) 
+	let p = new pipe_manager() 
+	let f = {'connect' : function(_to) { return p.connect(to,_to) }}
+	return f // for recursive connects... p.connect(1,2).connect(3).connect(4)...
     } 
 
     /**

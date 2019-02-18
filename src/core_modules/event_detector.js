@@ -1,92 +1,56 @@
-import {makeLogger} from "./logger.js"
-import {util} from "../module_resources/utils.js"
 
+import * as util from "../module_resources/utils.js"
+import base_node from  "./base_node.js"
 
-//scroll DOWN for class definition ! 
-// will need to tidy up this file @ some point 
-
-// if array of numbers, return the power of array
-// if its a dictionary, then return the reduced version of all its keys
-// if its a number, return the number
-// for now i wont compare strings
-
-var  power = util.rms 
-    
-function map_f_on_dict(d,f) {
-    for (var k in d ) {
-	d[k] = f(d[k]) 
-    }
-    return d 
-}
-
-function reduce_val(v) {
-
-    if (typeof v == "object") { 
-	if (Array.isArray(v)) {
-	    // its an array
-	    return power(v) 
-	    
-	} else {
-	    // assume its a dict
-	    return map_f_on_dict(v, reduce_val) 
-	}
-    } else {
-
-	// assume its a number
-	return v  
-
-    }
-
-}
-
-var reduce = reduce_val 
-
-function reduce_dict(obj) {
-    return map_f_on_dict(obj, reduce_val)
-}
-
-let test_dict = { acc : [ 1,2,3,4,5] , gyr : { foo : 2 , bar : [1,2,3,4,5] } , happy : 1 } 
-
-// then, I will need to  Linearize the data object (will assume it is a dict) 
-///  loop through keys
-///  if num, push num to ret 
-///  if dict, push the recursive result
-
-function linearize_dict(obj) {
-    var result = []
-    for (var k in  obj) {
-if (typeof obj[k]  == "object" ) {
-   result.push( linearize_dict(obj[k]) ) 
-} else {
-   result.push(obj[k])
-} 
-    }
-    let flattened =  [].concat.apply([], result)
-    return flattened 
-
-} 
-
-function linearize(obj) {
-    return linearize_dict(obj) 
-} 
-
-
+/*
+ The event detector accepts a (possibly nested) dictionary as input. It converts the dictionary 
+ into a linear array of values representing that data structure (see linearize) 
+ As a new dictionary comes in, 
+ it calculates the same linear array and takes a log difference @ each index rom the previous. 
+ 
+ If at least 1 of the indeces shows a log diff out of bounds of the thresholds, we can say 
+ a "change" has occurred. 
+ 
+ The event detector commences in the state "awaiting_baseline" 
+ Baseline is established when no "change" has been detected for "baseline_counter" number of times 
+ At this point, when a "change" is detected an EVENT is said to begin, and starts being recorded. 
+ Because of the logic, as long as "changes" keep occuring then the event keeps recording. 
+ Once no changes have occured for "baseline_counter" num packets, then baseline is again 
+ established  and the ED "flushes" the event to internal memory and outputs it to the events
+ output port
+ 
+ In addition Each packet received is forwarded to the main_ouput, making this a "through node"
+ */
 
 /**
  * Detects and emits deviation "events" from streams of arbitraty data objects
  *
  * @param {Object} opts - configuration options
  */
-export default class event_detector {
+export default class event_detector extends base_node {
     
     constructor(opts) { 
+	
+	let node_name = "ED" 
+	super({node_name}) 
+	
+	let main_handler = function(payload) { 
+	    this.process_data(payload) 
+	    return payload 
+	} 
+	
+	this.configure({main_handler})
+	
+	//create events output 
+	this.new_output("events") 
+	
 	var opts = opts || {} 
 	this.opts =  opts
-	this.log = makeLogger("ED")
-
 	this.state =  "awaiting_baseline" //  established_baseline | processing_event
 	
 	//init counters for estabishing baseline 
+	//baseline will be established when thresholds are respected for "baseline_counter" number
+	//of events 
 	this.baseline_counter = 0 
 	this.baseline_number = opts.baseline_number || 60
 	
@@ -105,11 +69,7 @@ export default class event_detector {
 	// initialize history buffer 
 	this.history_buffer_size  = opts.history_buffer_size || 50
 	this.init_history_buffer()  
-	
-	this.default_handler = function(data) { 
-	    this.log("No data handler has been defined!") 
-	} 
-	this.data_handler = this.default_handler 
+
 	
     } 
 
@@ -208,10 +168,9 @@ export default class event_detector {
 	    break ; 
 	} // END switch --- 
 	
-	if (true) { 
-	    //this.data_handler(obj)
-	    this.data_handler(log_diff)
-	}
+	
+	return log_diff //this is the array of log diffs for each of the linearized indexes 
+
     }
     
     /** 
@@ -237,6 +196,11 @@ export default class event_detector {
 	// v2 
 	
 	this.log("Flushed event") 
+	/* will send to events output port */ 
+	let payload = this.current_event 
+	let output_port = "events" 
+	this.trigger_output_packet({ output_port, payload}) 
+	
 	this.current_event = [] 
     }
     
@@ -255,17 +219,74 @@ export default class event_detector {
     
     
     
+}
+
+
+
+
+// if array of numbers, return the power of array
+// if its a dictionary, then return the reduced version of all its keys
+// if its a number, return the number
+// for now i wont compare strings
+
+var  power = util.rms 
     
-    /** 
-     * Sets the data_handler attribute
-     * @param {Function} func - Function which accepts ONE raw data object and processes it.
-     */ 
-    set_data_handler(func) { 
-	this.data_handler = func 
+function map_f_on_dict(d,f) {
+    for (var k in d ) {
+	d[k] = f(d[k]) 
+    }
+    return d 
+}
+
+function reduce_val(v) {
+
+    if (typeof v == "object") { 
+	if (Array.isArray(v)) {
+	    // its an array
+	    return power(v) 
+	    
+	} else {
+	    // assume its a dict
+	    return map_f_on_dict(v, reduce_val) 
+	}
+    } else {
+
+	// assume its a number
+	return v  
+
     }
 
- 
-    static foo() { return 10 } 
-    
-    
 }
+
+var reduce = reduce_val 
+
+function reduce_dict(obj) {
+    return map_f_on_dict(obj, reduce_val)
+}
+
+let test_dict = { acc : [ 1,2,3,4,5] , gyr : { foo : 2 , bar : [1,2,3,4,5] } , happy : 1 } 
+
+/* 
+ * loop through keys
+ * if num, push num to ret 
+ * if dict, push the recursive result
+ */
+function linearize_dict(obj) {
+    var result = []
+    for (var k in  obj) {
+	if (typeof obj[k]  == "object" ) {
+	    result.push( linearize_dict(obj[k]) ) 
+	} else {
+	    result.push(obj[k])
+	} 
+    }
+    let flattened =  [].concat.apply([], result)
+    return flattened 
+
+} 
+
+function linearize(obj) {
+    return linearize_dict(obj) 
+} 
+
+

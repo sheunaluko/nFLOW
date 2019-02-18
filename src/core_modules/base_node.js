@@ -1,12 +1,12 @@
 // Fri Dec 21 12:12:27 EST 2018
 
 import {makeLogger} from "./logger.js"
-import {util} from "../module_resources/utils.js"
+import * as util from "../module_resources/utils.js"
 
 
 /* 
 [Fri Dec 21 12:12:27 EST 2018]
-I would like to make it such that ALL wrtsm nodes can inherit from this class 
+I would like to make it such that ALL nflow nodes can inherit from this class 
 thereby encapsulating all common functionality and providing an avenue for 
 simultaneous upgrades 
 
@@ -66,7 +66,7 @@ class node_io_router {
 	this.outputs = {} 
 	this.base_node = null 
 	/* initialize the global node connectivity map (used to inspect connections)  */ 
-	if (! window.wrtsm.node_connections ) { window.wrtsm.node_connections = {} }
+	if (! window.nflow.node_connections ) { window.nflow.node_connections = {} }
     } 
     
     new_input(id) { 
@@ -121,7 +121,7 @@ class node_io_router {
 	}
 	
 	/* and will also update the global connection struct */ 
-	window.wrtsm.node_connections[connection_name] = { 
+	window.nflow.node_connections[connection_name] = { 
 	    source : [ dict_from.base_node.id , output_port ], 
 	    sink   : [ dict_to.base_node.id , input_port ] 
 	} 
@@ -138,11 +138,11 @@ class node_io_router {
 	dict_from.outputs[output_port][connection_name] = null 
 	
 	/* and will also update the global connection struct */ 
-	window.wrtsm.node_connections[connection_name] = null 
+	window.nflow.node_connections[connection_name] = null 
     }
     
     get_global_connections() { 
-	return window.wrtsm.node_connections 
+	return window.nflow.node_connections 
     }
     
     set_base_node(node) { 
@@ -193,7 +193,11 @@ class node_payload_router {
 	this.handler_dict[input_port][handler_id] = (function(_payload) { 
 	    //process the payload with the handler and send to output port 
 	    let payload = handler(_payload) 
-	    this.send_payload_to_output({payload, output_port})
+	    if (payload == nflow.SKIP_PAYLOAD) { 
+		return 
+	    } else { 
+		this.send_payload_to_output({payload, output_port})
+	    } 
 	}).bind(this)   /* have to bind for this reference */
     }
     
@@ -212,7 +216,7 @@ class node_payload_router {
 
 
 /**
- * Base class for defining wrtsm nodes 
+ * Base class for defining nflow nodes 
  *
  */
 export default class base_node {
@@ -222,21 +226,25 @@ export default class base_node {
 	
 	/* instantiate member variables */ 
 	this.opts = opts
+	this.base_node = this 
+	this.configured = false 
 	this.name = opts.node_name || "base_node" 
 	/* create global counter for node IDs */ 
-	if (!wrtsm.node_counter) {wrtsm.node_counter = 0}
-	this.id = this.name + "_" + wrtsm.node_counter++
+	if (!nflow.node_counter) {nflow.node_counter = 0}
+	if (!nflow.nodes) {nflow.nodes = {}}
+	this.id = this.name + "_" + nflow.node_counter++
+	nflow.nodes[this.id] = this
 	this.log = makeLogger(this.id) 
 	this.dev_logger = makeLogger(this.id + "_dev")
-	this.dev_mode = true 
+	this.dev_mode = opts.dev_mode || false 
 	this.dlog = function(msg) { if (this.dev_mode) { this.dev_logger(msg) } } 
 	this.dclog = function(msg) {if (this.dev_mode) { console.log(msg) } } 
 	this.creation_time = new Date() 
+	this.data_counter = 0 
 	/* stream stuff */ 
 	this.num_to_stream = null //for gating number of packets from source 
-	this.stream_enabler = opts.stream_enabler
-	this.stream_disabler = opts.stream_disabler
-	/* by default only sources must be enabled and started */ 
+	
+	/* only sources are disbabled by default */ 
 	this.streaming = opts.streaming || !opts.is_source 
 	this.stream_enabled = opts.stream_enabled ||  !opts.is_source 
 	    
@@ -246,7 +254,6 @@ export default class base_node {
 	this.is_through    = opts.is_through || true 
 	/* these have significance in terms of base functionalities of the node /* 
 
-	
 	/* create a payload router object for managing connections  */
 	this.payload_router = new node_payload_router() 
 	
@@ -257,7 +264,7 @@ export default class base_node {
 	
 	/* define a default handler */
 	this.default_handler = (function(payload){
-	    this.log(payload); return payload //must return in order to pass it on ! 
+	    this.dclog(payload); return payload //must return in order to pass it on ! 
 	}).bind(this)
 	
 	/* By default each node maps main_input -> main_handler -> main_output */ 
@@ -266,7 +273,22 @@ export default class base_node {
 	
 	/* configure main route */ 
 	this.payload_router.add_input_handler( main_opts ) 
+	
     } 
+    
+    configure({stream_enabler , stream_disabler, main_handler}) {
+	this.stream_enabler = stream_enabler
+	this.stream_disabler = stream_disabler
+	this.main_handler = main_handler || this.default_handler 
+	
+	/* By default each node maps main_input -> main_handler -> main_output */ 
+	let main_opts = {handler_id : "main" , input_port : "main_input" , 
+			 output_port : "main_output" , handler : this.main_handler.bind(this) } 
+	
+	/* configure main route */ 
+	this.payload_router.add_input_handler( main_opts ) 
+	this.configured = true 
+    }
     
     /* 
      * Helper function for calling handlers 
@@ -283,12 +305,14 @@ export default class base_node {
      * @param {Dict} packet - contains { input_port , payload } 
      */ 
     process_packet({input_port, payload}) { 
+	console.assert(this.configured, "Node not configured: " + this.id) 
 	if (this.streaming) { 
 	    this.dlog("Processing data packet...")
+	    this.dclog({input_port, payload})
 	    //in general when a packet comes in we 
 	    //1. find the handlers associated with the input_port requested 
 	    let handler_obj = this.payload_router.handler_dict[input_port] 
-	    this.dclog(handler_obj)
+	    //this.dclog(handler_obj)
 	    //2. make sure it exists -- if not this is likely an error 
 	    console.assert(handler_obj) 
 	    //3. run all the handlers with the included payload 
@@ -297,6 +321,8 @@ export default class base_node {
 	    if (this.num_to_stream) { 
 		if (--this.num_to_stream == 0 ) { this.streaming = false } 
 	    } 
+	    
+	    this.data_counter += 1 
 						
 	} else {this.dlog("Not streaming!")}
     }
@@ -354,7 +380,7 @@ export default class base_node {
 	assign functions to instance variables which are called via a "protocol" 
      */
     
-    /* the member variables used below are created an object instantiation */ 
+    /* the member variables used below are created at object instantiation */ 
     enable_stream()  {this.stream_enabler(this)}
     disable_stream() {this.stream_disabler(this)}    
     
@@ -377,6 +403,7 @@ export default class base_node {
     /* Dev utilities for maually triggering nodes */ 
     /* These are not originally intended for realtime node communications */
     /* though may prove useful */ 
+    /* Update : have found them useful so far for triggering source nodes */
     trigger_input_packet({input_port = "main_input" , payload} ) { 
 	this.process_packet({input_port , payload })
     }
