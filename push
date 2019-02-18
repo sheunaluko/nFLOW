@@ -1,1 +1,7 @@
+rm src/module_resources/utils.js
+cp ../global_files/utils.js src/module_resources/utils.js 
+
 git add -A ; git commit -m $1 ; git push origin master 
+
+rm src/module_resources/utils.js
+ln -s ../global_files/utils.js src/module_resources/utils.js
