@@ -1,11 +1,8 @@
 # nFLOW
-nFLOW (a.k.a Node Flow) is a javascript library for protyping and implementing real time detection and feedback systems. 
-Data is piped in realtime via websockets into a configurable state machine, which allows visualization of both raw and derived data features. 
-Both raw data and derived features trigger state transitions through arbitrarily defined "detectors" and "applicators", which allows for the implementation of various feedback and detection systems. 
-Check out the documentation for more information, or get started below!
+
+nFLOW (Node Flow) is a javascript library that was built for protyping and implementing real time detection and feedback systems. Data is piped in realtime via websockets into a configurable state machine, which allows visualization of both raw and derived data features. Both raw data and derived features trigger state transitions through arbitrarily defined "detectors" and "applicators", which allows for the implementation of various feedback and detection systems. 
 
 ![](wrtsm.gif)
-
 
 ## Getting Started 
 
