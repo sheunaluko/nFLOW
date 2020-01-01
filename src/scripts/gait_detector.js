@@ -9,11 +9,11 @@ let ui   = nflow.mods.ui
 
 export function gait_detector(opts) { 
     var verb = true 
-    var mi_detect = 10
-    var num_cycles = 3
-    var num_dec  = 15 
+    var mi_detect = 10  // number of sample used to detect monotonically increasing gyr_z swing phase
+    var num_cycles = 3  //number of periods detected prior to confirmation that gait is occuring
+    var num_dec  = 15   // number of samples (with negative diffs) used to detect decreasing gyr_z phase prior to toe off 
+
     // will use state machine api 
-    
     //will define states  
     var states = {'pre_mi' : 0 , 
 		  'monotonically_increasing' : 1 , 
@@ -106,7 +106,7 @@ export function gait_detector(opts) {
 	}, 
 	"group" : "gait" 
     }
-    var md_0 = { 
+    var md_0 = {   //this may be a reset 
 	"detector" : function(sm) { 
 	    if (sm.STATE == states.monotonically_decreasing_pre_0) { 
 		var last_2 = sm.get_sensor_last_N("gyr_z", 2) 
@@ -145,7 +145,7 @@ export function gait_detector(opts) {
 	    if (sm.STATE == states.hs) { 
 		var last_2 = sm.get_sensor_last_N("gyr_z", 2) 
 		if  (last_2[1] - last_2[0] < 0  )  { 
-		    sm.num_dec += 1 
+		    sm.num_dec += 1   //counts the number of decreasing points (smooths out initial bumpiness after HS and ignores it) 
 		}
 		return (sm.num_dec >= num_dec )
 	    } else { return false } 
@@ -172,10 +172,10 @@ export function gait_detector(opts) {
 	"group" : "gait" 
     }
     //now we add the transitioners 
-    sm.add_transitioner("p_mi", p_mi)
-    sm.add_transitioner("mi_md", mi_md)
-    sm.add_transitioner("md_mdp0", md_mdp0)
-    sm.add_transitioner("md_0", md_0)
+    sm.add_transitioner("p_mi", p_mi)  //pre monotonic increase 
+    sm.add_transitioner("mi_md", mi_md) //mono increase -> mono decrease 
+    sm.add_transitioner("md_mdp0", md_mdp0) // mono decrease -> mono decrease post 0 
+    sm.add_transitioner("md_0", md_0) //mono decrease 
     sm.add_transitioner("mdp0_hs", mdp0_hs)
     sm.add_transitioner("hs_pto", hs_pto)
     sm.add_transitioner("pto_to", pto_to)

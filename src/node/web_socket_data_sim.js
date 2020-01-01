@@ -5,6 +5,10 @@ rate = 20
     
 const ws = new WebSocket('ws://localhost:' + port);
 
+
+function t() { return new Date().getTime()/1000 } 
+let start = t() 
+
 //for generating random data packets 
 m = Math.random 
 var count = 0 
@@ -16,6 +20,7 @@ function get_data_packet(){
 	    'gyr_y' : m(), 
 	    'gyr_z' : m(),
 	    'sample': count++ , 
+	    'time'  : (t() - start),
 	    'dev'   : "B"}
 } 
      

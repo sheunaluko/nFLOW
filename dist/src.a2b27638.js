@@ -5,8 +5,6 @@
 //
 // anything defined in a previous bundle is accessed via the
 // orig method which is the require for previous bundles
-
-// eslint-disable-next-line no-global-assign
 parcelRequire = (function (modules, cache, entry, globalName) {
   // Save the require from previous bundle to this closure if any
   var previousRequire = typeof parcelRequire === 'function' && parcelRequire;
@@ -77,8 +75,16 @@ parcelRequire = (function (modules, cache, entry, globalName) {
     }, {}];
   };
 
+  var error;
   for (var i = 0; i < entry.length; i++) {
-    newRequire(entry[i]);
+    try {
+      newRequire(entry[i]);
+    } catch (e) {
+      // Save first error but execute all entries
+      if (!error) {
+        error = e;
+      }
+    }
   }
 
   if (entry.length) {
@@ -103,6 +109,13 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   // Override the current require with this new one
+  parcelRequire = newRequire;
+
+  if (error) {
+    // throw error from earlier, _after updating parcelRequire_
+    throw error;
+  }
+
   return newRequire;
 })({"src/core_modules/logger.js":[function(require,module,exports) {
 "use strict";
@@ -135,6 +148,10 @@ logger.register = function (tag) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.first_upper_case = first_upper_case;
+exports.identity = identity;
+exports.set_difference = set_difference;
+exports.get_logger = get_logger;
 exports.set_debug = set_debug;
 exports.bug = bug;
 exports.debug = debug;
@@ -152,6 +169,7 @@ exports.perf = perf;
 exports.arr_range = arr_range;
 exports.range = range;
 exports.first = first;
+exports.second = second;
 exports.last = last;
 exports.zip_map = zip_map;
 exports.zip = zip;
@@ -185,19 +203,19 @@ exports.app_clear = app_clear;
 exports.app_render = app_render;
 exports.get_colors = get_colors;
 exports.now = now;
-
-var _logger = require("../core_modules/logger.js");
-
+exports.click_id = click_id;
+exports.delay = delay;
+exports.loop_until_true = loop_until_true;
+exports.assign_to_window = assign_to_window;
 //Tue Oct  2 18:06:09 PDT 2018
 //General JS utils file 
 //would like to try creating soft?hard? links so that the utils files can be shared 
 var global_debug = true;
+var log = console.log;
 
 function set_debug(b) {
   global_debug = b;
 }
-
-_logger.logger.register("bug");
 
 function bug(tag) {
   if (global_debug) {
@@ -213,15 +231,19 @@ function bug(tag) {
 
 function debug(msg) {
   if (global_debug) {
-    _logger.logger.bug(msg);
+    console.log(msg);
   }
 }
 
 function and() {
   var ret = true;
 
-  for (var i = 0; i < arguments.length; i++) {
-    ret = ret && (i < 0 || arguments.length <= i ? undefined : arguments[i]);
+  for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+
+  for (var i = 0; i < args.length; i++) {
+    ret = ret && args[i];
   }
 
   return ret ? true : false;
@@ -334,6 +356,22 @@ function range(a, b) {
 
 function first(d) {
   return d[0];
+}
+
+function second(d) {
+  return d[1];
+}
+
+function rest(d) {
+  d.slice(1);
+}
+
+function first_upper_case(s) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function identity(x) {
+  return x;
 }
 
 function last(d) {
@@ -560,12 +598,11 @@ function set_inner_html(d, thang) {
 function flex_row(num, id_base, f) {
   var container, i;
   container = dom("div"); //container.className = "flex-row"  // see styles.css   
-
-  container.style = "display : flex ; flex-wrap : nowrap ; flex-direction : row ; flex-grow : 1 ";
+  //container.style = "display : flex ; flex-wrap : nowrap ; flex-direction : row ; flex-grow : 1 "
 
   for (i = 0; i < num; i++) {
-    var d = dom("div");
-    d.style = "flex-grow : 1";
+    var d = dom("div"); //d.style = "flex-grow : 1"
+
     var html = f(i, d);
 
     if (html) {
@@ -587,8 +624,8 @@ function make_div_array(m, n, id_base, f) {
   var container, i;
   container = dom("div"); //container.className = "flex-column"  // see styles.css  
 
-  container.id = id_base;
-  container.style = "width: 100% ; height : 100% ; display : flex ; flex-wrap : nowrap ; flex-direction : column "; // now we will add in the child elements 
+  container.id = id_base; //container.style = "width: 100% ; height : 100% ; display : flex ; flex-wrap : nowrap ; flex-direction : column "
+  // now we will add in the child elements 
 
   for (i = 0; i < m; i++) {
     //f is a function which takes a row and column and element 
@@ -644,7 +681,153 @@ function now() {
 // Array.prototype.first = function(arr) { 
 //     return arr[0] 
 // }
-},{"../core_modules/logger.js":"src/core_modules/logger.js"}],"src/core_modules/base_node.js":[function(require,module,exports) {
+
+
+function click_id(id) {
+  var el = document.getElementById(id);
+  console.assert(el);
+  el.click();
+}
+
+function delay(ms) {
+  return new Promise(function (resolve, reject) {
+    setTimeout(function () {
+      resolve(true);
+    }, ms);
+  });
+}
+
+function get_ms() {
+  return new Date().getTime();
+}
+
+function loop_until_true(f, rate, timeout) {
+  var t_start = get_ms();
+  var p = new Promise(function (resolve, reject) {
+    var id = setInterval(function () {
+      var t_now = get_ms();
+
+      if (f()) {
+        //condition is met 
+        setTimeout(function () {
+          clearInterval(id);
+        }, 1);
+        resolve(false);
+      } else {
+        var elapsed = t_now - t_start;
+
+        if (elapsed >= timeout) {
+          setTimeout(function () {
+            clearInterval(id);
+          }, 1);
+          resolve(true); // reports an timeout
+        }
+      }
+    }, rate);
+  }); //return the promise now 
+
+  return p;
+}
+
+function map_indexed(arr, f) {
+  var ret = Array(arr.length).fill(null);
+
+  for (var _i = 0; _i < arr.length; _i++) {
+    ret[_i] = f(_i, arr[_i]);
+  }
+
+  return ret;
+}
+
+function merge_arrays() {
+  for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+    args[_key2] = arguments[_key2];
+  }
+
+  var arr_1 = first(args);
+}
+
+function map_dict(dic, f) {
+  //f is a function that takes 
+  var ks = keys(dic);
+  var vs = ks.map(function (k) {
+    return dic[k];
+  });
+}
+
+function assign_to_window(var_name, val) {
+  if (!window[var_name]) {
+    window[var_name] = val;
+  } else {
+    //log("Could not assign: " + var_name ) 
+    window[var_name] = val;
+    log("(Re)Defining: " + var_name);
+  }
+}
+
+function reload() {
+  window.location = window.location;
+}
+
+function set_difference(s1, s2) {
+  var ret = new Set();
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = s1[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var el = _step.value;
+
+      if (!s2.has(el)) {
+        ret.add(el);
+      }
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return != null) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  return ret;
+}
+
+function get_logger(name) {
+  var header = "[" + name + "]:: ";
+
+  var l = function l(t, m) {
+    if (typeof m == 'string') {
+      console[t](header + m); //adds header if string
+    } else {
+      console[t](header + "~>"); //if not prints header first 
+
+      console[t](m);
+    }
+  };
+
+  var i = function i(m) {
+    l("info", m);
+  };
+
+  var d = function d(m) {
+    l("debug", m);
+  };
+
+  return {
+    i: i,
+    d: d
+  };
+}
+},{}],"src/core_modules/base_node.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -656,7 +839,9 @@ var _logger = require("./logger.js");
 
 var util = _interopRequireWildcard(require("../module_resources/utils.js"));
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -1004,9 +1189,9 @@ function () {
 
     this.num_to_stream = null; //for gating number of packets from source 
 
-    /* only sources are disbabled by default */
+    /* WATCH out... default handling of stream enabling etc is confusing! */
 
-    this.streaming = opts.streaming || !opts.is_source;
+    this.streaming = opts.streaming || true;
     this.stream_enabled = opts.stream_enabled || !opts.is_source;
     /* configure the node type base on opts params  */
 
@@ -1036,9 +1221,9 @@ function () {
       input_port: "main_input",
       output_port: "main_output",
       handler: this.default_handler
-      /* configure main route */
-
     };
+    /* configure main route */
+
     this.payload_router.add_input_handler(main_opts);
   }
 
@@ -1058,9 +1243,9 @@ function () {
         input_port: "main_input",
         output_port: "main_output",
         handler: this.main_handler.bind(this)
-        /* configure main route */
-
       };
+      /* configure main route */
+
       this.payload_router.add_input_handler(main_opts);
       this.configured = true;
     }
@@ -1308,7 +1493,9 @@ var _base_node2 = _interopRequireDefault(require("./base_node.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -1341,14 +1528,16 @@ function (_base_node) {
    * Manages data persistence and replay/simulation. Uses browser based local storage. 
    * @param {String} name - Session identifier, use null for default time string
    */
-  function data_storage(name) {
+  function data_storage(_ref) {
     var _this;
+
+    var id = _ref.id,
+        is_source = _ref.is_source,
+        is_sink = _ref.is_sink;
 
     _classCallCheck(this, data_storage);
 
     var node_name = "DS";
-    var is_source = true;
-    var is_sink = true;
     _this = _possibleConstructorReturn(this, _getPrototypeOf(data_storage).call(this, {
       node_name: node_name,
       is_source: is_source,
@@ -1361,18 +1550,28 @@ function (_base_node) {
 
     var stream_disabler = function stream_disabler() {
       this.log("No stream disabler implemented");
-    };
+    }; //have to configure the main handler depending on whether this is source or sink 
 
-    var main_handler = function main_handler(payload) {
-      this.data_history.push(obj);
-    };
+
+    var main_handler;
+
+    if (is_sink) {
+      main_handler = function main_handler(payload) {
+        this.data_history.push(payload);
+      };
+    } else if (is_source) {
+      main_handler = function main_handler(payload) {
+        return payload; // pass it on 
+      };
+    }
 
     _this.configure({
       stream_enabler: stream_enabler,
-      stream_disabler: stream_disabler
+      stream_disabler: stream_disabler,
+      main_handler: main_handler
     });
 
-    _this.session_id = name || new Date().toISOString();
+    _this.session_id = id || new Date().toISOString();
     _this.data_history = [];
     _this.part_counter = 1;
     _this.save_interval_id = null;
@@ -1390,7 +1589,7 @@ function (_base_node) {
     key: "flush_data",
     value: function flush_data() {
       var to_save = JSON.stringify(this.data_history);
-      name = this.session_id + "_part" + this.part_counter.toString();
+      var name = this.session_id + "_part" + this.part_counter.toString();
       this.data_history = [];
       localStorage.setItem(name, to_save);
       this.part_counter += 1;
@@ -1515,7 +1714,7 @@ function (_base_node) {
         } else {
           //not on the last data point 
           //now acces the next diff 
-          var delay = this.diffs[this.stream_index]; //increment the stream_index 
+          var delay = this.diffs[this.stream_index] || 50; //increment the stream_index 
 
           this.stream_index += 1; //schedule the loop again 
 
@@ -1676,11 +1875,15 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _utils = require("../module_resources/utils.js");
+var util = _interopRequireWildcard(require("../module_resources/utils.js"));
 
 var _base_node2 = _interopRequireDefault(require("./base_node.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -1710,8 +1913,11 @@ var web_socket =
 function (_base_node) {
   _inherits(web_socket, _base_node);
 
-  function web_socket(url) {
+  function web_socket(_ref) {
     var _this;
+
+    var url = _ref.url,
+        dev_mode = _ref.dev_mode;
 
     _classCallCheck(this, web_socket);
 
@@ -1719,11 +1925,12 @@ function (_base_node) {
     var is_source = true;
     _this = _possibleConstructorReturn(this, _getPrototypeOf(web_socket).call(this, {
       node_name: node_name,
-      is_source: is_source
+      is_source: is_source,
+      dev_mode: dev_mode
     }));
 
     var stream_enabler = function stream_enabler() {
-      this.connect();
+      this.ws_connect();
     };
 
     var stream_disabler = function stream_disabler() {
@@ -1734,42 +1941,54 @@ function (_base_node) {
       this.connection.close();
     };
 
+    var main_handler = function main_handler(payload) {
+      return payload; //just forwards the data it receives 
+    };
+
     _this.configure({
       stream_enabler: stream_enabler,
-      stream_disabler: stream_disabler
+      stream_disabler: stream_disabler,
+      main_handler: main_handler
     });
 
     _this.url = url;
     _this.connection = null;
     return _this;
   }
-  /**
-   * Connect to remote websocket server. Upon success, registers the websocket connection
-   * as "client" with the server, enables streaming, and this.logs to console. 
-   */
-
 
   _createClass(web_socket, [{
-    key: "connect",
-    value: function connect() {
+    key: "parse_event",
+    value: function parse_event(e) {
+      //parses and converts it to payload 
+      return util.dict_vals_2_num(JSON.parse(event.data));
+    }
+    /**
+     * Connect to remote websocket server. Upon success, registers the websocket connection
+     * as "client" with the server, enables streaming, and this.logs to console. 
+     */
+
+  }, {
+    key: "ws_connect",
+    value: function ws_connect() {
       var conn = new WebSocket(this.url); // Connection opened
 
       conn.addEventListener('open', function (event) {
         this.log("Connection to " + this.url + " successful. Registering client with server.");
-        this.send_json({
-          type: "register",
-          data: "client"
-        });
-        this.send_json({
-          type: "control",
-          data: "start"
-        });
+        setTimeout(function () {
+          this.send_json({
+            type: "register",
+            data: "client"
+          });
+          this.send_json({
+            type: "control",
+            data: "start"
+          });
+        }.bind(this), 1000);
       }.bind(this)); //bind is necessary for web_socket class vs WebSocket instance! 
       // Listen for messages
 
       conn.addEventListener('message', function (event) {
-        var payload = _utils.util.dict_vals_2_num(JSON.parse(event.data));
-
+        var payload = this.parse_event(event);
         this.trigger_input(payload); //defaults to main input_port 
       }.bind(this)); //bind is necessary for web_socket class vs WebSocket instance! 
 
@@ -1881,7 +2100,9 @@ var _base_node2 = _interopRequireDefault(require("./base_node.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
 
@@ -1899,7 +2120,7 @@ function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArra
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
 
-function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+function _iterableToArrayLimit(arr, i) { if (!(Symbol.iterator in Object(arr) || Object.prototype.toString.call(arr) === "[object Arguments]")) { return; } var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
@@ -2004,9 +2225,9 @@ function create_multi_line_graph(opts) {
   // https://github.com/bokeh/bokeh/issues/4958
 
   var p = Bokeh.Plotting.figure({
-    title: title,
-    sizing_mode: 'stretch_both'
-  }); //add the multiline 
+    title: title
+  }); //,sizing_mode : 'stretch_both' })
+  //add the multiline 
 
   var glyph = p.multi_line({
     field: "xs"
@@ -2659,7 +2880,9 @@ var util = _interopRequireWildcard(require("../module_resources/utils.js"));
 
 var _base_node2 = _interopRequireDefault(require("./base_node.js"));
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2832,9 +3055,9 @@ function (_base_node) {
         var sensors = this.ui_mapping[graph];
         var opts = {
           id: graph,
-          series_vector: sensors /// POTENTIAL BUG ON NEXT RUN  !? UNLESS FIX IS GOLDEN FIX
+          series_vector: sensors
+        }; /// POTENTIAL BUG ON NEXT RUN  !? UNLESS FIX IS GOLDEN FIX
 
-        };
         this.ui.add_graph(opts); // initializes a graph 
       } //after all the graphs have been added then we call init 
 
@@ -3050,9 +3273,9 @@ var default_data_obj = {
   'gyr_z': 0,
   'sample': 0,
   'time': 0,
-  'dev': "B" //for generating random data packets 
+  'dev': "B"
+}; //for generating random data packets 
 
-};
 var m = Math.random;
 var count = 0;
 
@@ -3082,7 +3305,9 @@ var _base_node2 = _interopRequireDefault(require("./base_node.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -3169,9 +3394,8 @@ function (_base_node) {
 
     _this.detection_params = {
       upper: null,
-      lower: null //detection_thresh expressed as percent difference 
-
-    };
+      lower: null
+    }; //detection_thresh expressed as percent difference 
 
     _this.init_detection_params(opts.detection_thresh || 30); // save the last linearized packet for calculation 
 
@@ -3399,13 +3623,12 @@ var test_dict = {
     bar: [1, 2, 3, 4, 5]
   },
   happy: 1
-  /* 
-   * loop through keys
-   * if num, push num to ret 
-   * if dict, push the recursive result
-   */
-
 };
+/* 
+ * loop through keys
+ * if num, push num to ret 
+ * if dict, push the recursive result
+ */
 
 function linearize_dict(obj) {
   var result = [];
@@ -3451,7 +3674,9 @@ var _state_machine = _interopRequireDefault(require("./core_modules/state_machin
 
 var _event_detector = _interopRequireDefault(require("./core_modules/event_detector.js"));
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -22775,9 +23000,9 @@ nflow.smu = _sm_utils.smu;
 nflow.dev = _dev.dev; //load sample data 
 
 nflow.resources = {
-  sample_walk: _sample_walk.default //define global data params 
+  sample_walk: _sample_walk.default
+}; //define global data params 
 
-};
 nflow.SKIP_PAYLOAD = "nflow_skip_payload_0000001"; //could alternatively use uuid
 //add it to window 
 
@@ -22792,7 +23017,11 @@ exports.sme = void 0;
 
 var _logger = require("../core_modules/logger.js");
 
-var _utils = require("./utils.js");
+var util = _interopRequireWildcard(require("./utils.js"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 //Fri Oct  5 19:31:23 PDT 2018
 // filefor collecting definitions of Sensors and transitioners
@@ -22803,15 +23032,22 @@ var sme = {
     dev_a: {},
     dev_b: {}
   },
-  transitioners: {} //extract a specific field from the data objects 
-  //i.e. [{:acc_x :acc_y... } , ... ] => [ acc_x, acc_x ... ] 
+  transitioners: {}
+}; //extract a specific field from the data objects 
+//i.e. [{:acc_x :acc_y... } , ... ] => [ acc_x, acc_x ... ] 
 
-};
 exports.sme = sme;
 
 sme.sensors.field = function (field) {
   return function (sm) {
-    return _utils.util.last(sm.buffer)[field];
+    return util.last(sm.buffer)[field];
+  };
+};
+
+sme.sensors.foo = function (x) {
+  return function (sm) {
+    console.log(sm);
+    return 20;
   };
 }; //field diff will take the  diff of a particular field in the data object 
 
@@ -22836,14 +23072,12 @@ sme.sensors.dev_b.field = function (field) {
   //return sme.generic_filter(sme.is_dev_b , d=>d[field] ) 
   return function (d) {
     var buf = d.buffer;
-
-    var d = _utils.util.last(buf);
+    var d = util.last(buf);
 
     if (d.dev == "B") {
       return d[field];
     } else {
-      _utils.util.debug("filter miss");
-
+      util.debug("filter miss");
       return false;
     }
   };
@@ -22889,7 +23123,6 @@ var _sm_utils = require("./module_resources/sm_utils.js");
 
 var _dev = require("./dev.js");
 
-// defines object that will be attached to window 
 var wrtsm = {}; //give it modules
 
 exports.wrtsm = wrtsm;
@@ -23080,10 +23313,10 @@ flow.playback_gui = function (d) {
 
 flow.graph_dances = function () {
   var d = {
-    g1: ["acc_x", "acc_y"] //, "gyr_z"] }  
-    //[sm,d] = test_state_machine_gui({ g1 : ["acc_x"] , g2 : [ "acc_y"] }) 
+    g1: ["acc_x", "acc_y"]
+  }; //, "gyr_z"] }  
+  //[sm,d] = test_state_machine_gui({ g1 : ["acc_x"] , g2 : [ "acc_y"] }) 
 
-  };
   var sm = flow.test_state_machine_gui(d); //[sm,d] = test_state_machine_gui({ g1 : ["acc_x",  "acc_y"] , g2 : [  "gyr_z"] })
   //util.app_render(test_div_array(1,2)) 
 
@@ -23183,6 +23416,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.beep = beep;
 var sounds = {};
+var AudioContext = window.AudioContext || window.webkitAudioContext;
 sounds.ctx = new AudioContext();
 
 sounds.osc = function (type, freq, gainVal) {
@@ -23297,7 +23531,9 @@ exports.go = go;
 
 var util = _interopRequireWildcard(require("./utils.js"));
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /* my JS interface to Bokeh */
 
@@ -23480,16 +23716,21 @@ var util = _interopRequireWildcard(require("../module_resources/utils.js"));
 
 var bokeh = _interopRequireWildcard(require("../module_resources/bokeh.js"));
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 var mods = nflow.mods;
 var ui = nflow.mods.ui;
 
 function gait_detector(opts) {
   var verb = true;
-  var mi_detect = 10;
-  var num_cycles = 3;
-  var num_dec = 15; // will use state machine api 
+  var mi_detect = 10; // number of sample used to detect monotonically increasing gyr_z swing phase
+
+  var num_cycles = 3; //number of periods detected prior to confirmation that gait is occuring
+
+  var num_dec = 15; // number of samples (with negative diffs) used to detect decreasing gyr_z phase prior to toe off 
+  // will use state machine api 
   //will define states  
 
   var states = {
@@ -23499,9 +23740,9 @@ function gait_detector(opts) {
     'monotonically_decreasing_post_0': 3,
     'hs': 4,
     'pre_to': 5,
-    'to': 6 //define init state 
+    'to': 6
+  }; //define init state 
 
-  };
   var init = states.pre_mi;
   var new_opts = util.merge(opts, {
     init: init
@@ -23560,9 +23801,9 @@ function gait_detector(opts) {
         });
       }
     },
-    "group": "gait" // - 
+    "group": "gait"
+  }; // - 
 
-  };
   var mi_md = {
     "detector": function detector(sm) {
       if (sm.STATE == states.monotonically_increasing) {
@@ -23579,9 +23820,9 @@ function gait_detector(opts) {
         console.log("MD");
       }
     },
-    "group": "gait" // -
+    "group": "gait"
+  }; // -
 
-  };
   var md_mdp0 = {
     "detector": function detector(sm) {
       if (sm.STATE == states.monotonically_decreasing_pre_0) {
@@ -23601,6 +23842,7 @@ function gait_detector(opts) {
     "group": "gait"
   };
   var md_0 = {
+    //this may be a reset 
     "detector": function detector(sm) {
       if (sm.STATE == states.monotonically_decreasing_pre_0) {
         var last_2 = sm.get_sensor_last_N("gyr_z", 2);
@@ -23646,7 +23888,7 @@ function gait_detector(opts) {
         var last_2 = sm.get_sensor_last_N("gyr_z", 2);
 
         if (last_2[1] - last_2[0] < 0) {
-          sm.num_dec += 1;
+          sm.num_dec += 1; //counts the number of decreasing points (smooths out initial bumpiness after HS and ignores it) 
         }
 
         return sm.num_dec >= num_dec;
@@ -23680,13 +23922,263 @@ function gait_detector(opts) {
         console.log("to");
       }
     },
-    "group": "gait" //now we add the transitioners 
+    "group": "gait"
+  }; //now we add the transitioners 
 
+  sm.add_transitioner("p_mi", p_mi); //pre monotonic increase 
+
+  sm.add_transitioner("mi_md", mi_md); //mono increase -> mono decrease 
+
+  sm.add_transitioner("md_mdp0", md_mdp0); // mono decrease -> mono decrease post 0 
+
+  sm.add_transitioner("md_0", md_0); //mono decrease 
+
+  sm.add_transitioner("mdp0_hs", mdp0_hs);
+  sm.add_transitioner("hs_pto", hs_pto);
+  sm.add_transitioner("pto_to", pto_to);
+  var d = {
+    main: ["gyr_z"]
   };
-  sm.add_transitioner("p_mi", p_mi);
-  sm.add_transitioner("mi_md", mi_md);
-  sm.add_transitioner("md_mdp0", md_mdp0);
-  sm.add_transitioner("md_0", md_0);
+
+  if (opts.gui_mode) {
+    sm.init_gui("nflow", d);
+  }
+
+  return sm;
+}
+},{"../module_resources/state_machine_elements.js":"src/module_resources/state_machine_elements.js","../core_modules/logger.js":"src/core_modules/logger.js","../module_resources/utils.js":"src/module_resources/utils.js","../module_resources/bokeh.js":"src/module_resources/bokeh.js"}],"src/scripts/gait_detector_ios.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.gait_detector_ios = gait_detector_ios;
+
+var _state_machine_elements = require("../module_resources/state_machine_elements.js");
+
+var _logger = require("../core_modules/logger.js");
+
+var util = _interopRequireWildcard(require("../module_resources/utils.js"));
+
+var bokeh = _interopRequireWildcard(require("../module_resources/bokeh.js"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+var mods = nflow.mods;
+var ui = nflow.mods.ui;
+
+function gait_detector_ios(opts) {
+  var verb = true;
+  var mi_detect = 10; // number of sample used to detect monotonically increasing gyr_z swing phase
+
+  var num_cycles = 3; //number of periods detected prior to confirmation that gait is occuring
+
+  var num_dec = 15; // number of samples (with negative diffs) used to detect decreasing gyr_z phase prior to toe off 
+  // will use state machine api 
+  //will define states  
+
+  var states = {
+    'pre_mi': 0,
+    'monotonically_increasing': 1,
+    'monotonically_decreasing_pre_0': 2,
+    'monotonically_decreasing_post_0': 3,
+    'hs': 4,
+    'pre_to': 5,
+    'to': 6
+  }; //define init state 
+
+  var init = states.pre_mi;
+  var new_opts = util.merge(opts, {
+    init: init
+  }); //make state machine 
+
+  var sm = new nflow.mods.state_machine(new_opts); //initialize params 
+
+  sm.num_cycles = 0; // will only use gyr_z 
+
+  sm.add_sensor({
+    id: "gyr_z",
+    f: function f(sm) {
+      var d = util.last(sm.buffer);
+      return d['gyr_z'];
+    }
+  }); // will define the state machine transitioners 
+
+  var p_mi = {
+    "detector": function detector(sm) {
+      if (sm.STATE != states.monotonically_increasing) {
+        var last_N = sm.get_sensor_last_N("gyr_z", mi_detect); //console.log(last_N)
+
+        return util.array_and(util.diff(last_N).map(function (x) {
+          return x > 0;
+        })) && util.last(last_N) > 0;
+      } else {
+        return false;
+      }
+    },
+    "applicator": function applicator(sm) {
+      sm.STATE = states.monotonically_increasing;
+      sm.num_cycles += 1;
+
+      if (sm.num_cycles == 1) {
+        sm.cycles_start_index = sm.data_counter;
+      }
+
+      if (verb) {
+        console.log("MI");
+        console.log("Cycle: " + sm.num_cycles);
+      }
+
+      if (false) {
+        //if (sm.num_cycles == num_cycles) { 
+        sm.cycles_end_index = sm.data_counter;
+        console.log("WALKING!!!");
+        console.log("Analysis period: ");
+        console.log([sm.cycles_start_index, sm.cycles_end_index].toString()); //extract from buffer
+
+        var num_to_get = sm.cycles_end_index - sm.cycles_start_index;
+        window.data = sm.buffer.slice(-num_to_get);
+        nflow.bokeh.line_plot({
+          y: window.data.map(function (e) {
+            return e.gyr_z;
+          })
+        });
+      }
+    },
+    "group": "gait"
+  }; // - 
+
+  var mi_md = {
+    "detector": function detector(sm) {
+      if (sm.STATE == states.monotonically_increasing) {
+        var last_2 = sm.get_sensor_last_N("gyr_z", 2);
+        return last_2[1] - last_2[0] < 0;
+      } else {
+        return false;
+      }
+    },
+    "applicator": function applicator(sm) {
+      sm.STATE = states.monotonically_decreasing_pre_0;
+
+      if (verb) {
+        console.log("MD");
+      }
+    },
+    "group": "gait"
+  }; // -
+
+  var md_mdp0 = {
+    "detector": function detector(sm) {
+      if (sm.STATE == states.monotonically_decreasing_pre_0) {
+        var last_2 = sm.get_sensor_last_N("gyr_z", 2);
+        return last_2[1] - last_2[0] < 0 && last_2[1] < 0;
+      } else {
+        return false;
+      }
+    },
+    "applicator": function applicator(sm) {
+      sm.STATE = states.monotonically_decreasing_post_0;
+
+      if (verb) {
+        console.log("MDp0");
+      }
+    },
+    "group": "gait"
+  };
+  var md_0 = {
+    //this may be a reset 
+    "detector": function detector(sm) {
+      if (sm.STATE == states.monotonically_decreasing_pre_0) {
+        var last_2 = sm.get_sensor_last_N("gyr_z", 2);
+        return last_2[1] - last_2[0] > 0 && last_2[1] > 0;
+      } else {
+        return false;
+      }
+    },
+    "applicator": function applicator(sm) {
+      sm.STATE = states.pre_0;
+
+      if (verb) {
+        console.log("md_0!");
+      }
+
+      sm.num_cycles = 0;
+    },
+    "group": "gait"
+  };
+  var mdp0_hs = {
+    "detector": function detector(sm) {
+      if (sm.STATE == states.monotonically_decreasing_post_0) {
+        var last_2 = sm.get_sensor_last_N("gyr_z", 2);
+        return last_2[1] - last_2[0] > 0;
+      } else {
+        return false;
+      }
+    },
+    "applicator": function applicator(sm) {
+      sm.STATE = states.hs;
+      sm.num_dec = 0;
+      window.ios_beep_2();
+
+      if (verb) {
+        console.log("HS");
+      }
+    },
+    "group": "gait"
+  };
+  var hs_pto = {
+    "detector": function detector(sm) {
+      if (sm.STATE == states.hs) {
+        var last_2 = sm.get_sensor_last_N("gyr_z", 2);
+
+        if (last_2[1] - last_2[0] < 0) {
+          sm.num_dec += 1; //counts the number of decreasing points (smooths out initial bumpiness after HS and ignores it) 
+        }
+
+        return sm.num_dec >= num_dec;
+      } else {
+        return false;
+      }
+    },
+    "applicator": function applicator(sm) {
+      sm.STATE = states.pto;
+
+      if (verb) {
+        console.log("pto");
+      }
+    },
+    "group": "gait"
+  };
+  var pto_to = {
+    "detector": function detector(sm) {
+      if (sm.STATE == states.pto) {
+        var last_2 = sm.get_sensor_last_N("gyr_z", 2);
+        return last_2[1] - last_2[0] > 0;
+      } else {
+        return false;
+      }
+    },
+    "applicator": function applicator(sm) {
+      sm.STATE = states.to;
+      window.ios_beep_1();
+
+      if (verb) {
+        console.log("to");
+      }
+    },
+    "group": "gait"
+  }; //now we add the transitioners 
+
+  sm.add_transitioner("p_mi", p_mi); //pre monotonic increase 
+
+  sm.add_transitioner("mi_md", mi_md); //mono increase -> mono decrease 
+
+  sm.add_transitioner("md_mdp0", md_mdp0); // mono decrease -> mono decrease post 0 
+
+  sm.add_transitioner("md_0", md_0); //mono decrease 
+
   sm.add_transitioner("mdp0_hs", mdp0_hs);
   sm.add_transitioner("hs_pto", hs_pto);
   sm.add_transitioner("pto_to", pto_to);
@@ -23707,10 +24199,12 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.sm_ds_test = sm_ds_test;
+exports.ds_log = ds_log;
 exports.test_sim_tf = test_sim_tf;
 exports.test_ED = test_ED;
 exports.test_base = test_base;
 exports.dev_x1 = dev_x1;
+exports.sample_walk_node = sample_walk_node;
 exports.tut_1 = tut_1;
 exports.tut_2 = tut_2;
 exports.tut_3 = tut_3;
@@ -23722,6 +24216,13 @@ exports.get_density = get_density;
 exports.get_diff = get_diff;
 exports.num_decs = num_decs;
 exports.gait_dev = gait_dev;
+exports.gait_dev_ws = gait_dev_ws;
+exports.ios_log = ios_log;
+exports.test_eugene_multi = test_eugene_multi;
+exports.ios_init = ios_init;
+exports.ios_gait = ios_gait;
+exports.log_ws = log_ws;
+exports.make_recording = make_recording;
 
 var _state_machine_elements = require("../module_resources/state_machine_elements.js");
 
@@ -23731,9 +24232,13 @@ var util = _interopRequireWildcard(require("../module_resources/utils.js"));
 
 var _gait_detector = require("./gait_detector.js");
 
+var _gait_detector_ios = require("./gait_detector_ios.js");
+
 var bokeh = _interopRequireWildcard(require("../module_resources/bokeh.js"));
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 _logger.logger.register("dev");
 
@@ -23765,14 +24270,29 @@ function sm_ds_test() {
     main: ["gyr_z"]
   }); //will load the file from storage 
 
-  var ds = new nflow.mods.data_storage("eugene_walk_rev");
-  ds.enable_stream(); //and then connect
+  var ds = new nflow.mods.data_storage({
+    id: "home_1",
+    is_source: true
+  }); //and then connect
 
   ds.connect(sm); //and start stream 
 
   ds.start_stream();
   window.ds = ds;
   window.sm = sm;
+}
+
+function ds_log() {
+  //will load the file from storage 
+  var ds = new nflow.mods.data_storage({
+    id: "home_1",
+    is_source: true
+  }); //and then connect
+
+  ds.connect(new nflow.mods.logger_node()); //and start stream 
+
+  ds.start_stream();
+  window.ds = ds;
 }
 
 function test_sim_tf() {
@@ -23830,6 +24350,15 @@ function dev_x1() {
   d.start_stream();
   window.d = d;
   window.l = l;
+}
+
+function sample_walk_node() {
+  //1. Get the sample data from nflow lib
+  var sample_walk = nflow.resources.sample_walk; //2. Create a data_storage node with session_id 'sample_walk' which will hold the data
+
+  var walk_simulator = new nflow.mods.data_storage("sample_walk");
+  walk_simulator.set_session(sample_walk);
+  return walk_simulator;
 }
 
 function tut_1() {
@@ -23929,31 +24458,23 @@ function tut_4() {
       return nflow.SKIP_PAYLOAD;
     }
   }); // create another transformer that gets the diff 
+  // let _get_dy = new nflow.mods.transformer(function(payload) { 
+  // 	if (!this.last_val) { 
+  // 	    this.last_val = 0
+  // 	} 
+  // 	let result = payload.val - this.last_val
+  // 	this.last_val = payload.val
+  // 	return {val : result}
+  // })
+  // let _get_dy2 = new nflow.mods.transformer(function(payload) { 
+  // 	if (!this.last_val) { 
+  // 	    this.last_val = 0
+  // 	} 
+  // 	let result = payload.val - this.last_val
+  // 	this.last_val = payload.val
+  // 	return {val : result}
+  // })
 
-
-  var _get_dy = new nflow.mods.transformer(function (payload) {
-    if (!this.last_val) {
-      this.last_val = 0;
-    }
-
-    var result = payload.val - this.last_val;
-    this.last_val = payload.val;
-    return {
-      val: result
-    };
-  });
-
-  var _get_dy2 = new nflow.mods.transformer(function (payload) {
-    if (!this.last_val) {
-      this.last_val = 0;
-    }
-
-    var result = payload.val - this.last_val;
-    this.last_val = payload.val;
-    return {
-      val: result
-    };
-  });
 
   var logger_node = new nflow.mods.logger_node(); //5. Connect the nodes together! 
 
@@ -23984,10 +24505,6 @@ function tut_4() {
    
 */
 
-
-function nflow_init() {
-  gait_dev();
-}
 
 function eugene_node() {
   var ds = new nflow.mods.data_storage("eugene_walk_rev");
@@ -24059,7 +24576,7 @@ function gait_dev() {
     debug_mode: false,
     gui_mode: true
   });
-  var en = eugene_node();
+  var sw = sample_walk_node();
 
   var _dev_b = new nflow.mods.transformer(function (payload) {
     if (payload.dev == 'B') {
@@ -24070,11 +24587,176 @@ function gait_dev() {
   });
 
   var ln = new nflow.mods.logger_node();
-  en.connect(_dev_b).connect(gd);
+  sw.connect(_dev_b).connect(gd);
   window.gd = gd;
+  window.sw = sw;
+}
+
+function gait_dev_ws() {
+  var gd = (0, _gait_detector.gait_detector)({
+    buffer_size: 300,
+    debug_mode: false,
+    gui_mode: true
+  });
+  var ws = new nflow.mods.web_socket({
+    url: "ws://localhost:1234",
+    dev_mode: false
+  });
+
+  var _dev_b = new nflow.mods.transformer(function (payload) {
+    if (payload.dev == 'B') {
+      return payload;
+    } else {
+      return nflow.SKIP_PAYLOAD;
+    }
+  }); //var ln = new nflow.mods.logger_node() 
+
+
+  ws.connect(_dev_b).connect(gd);
+  window.gd = gd;
+  window.ws = ws;
+}
+
+function ios_log() {
+  _logger.logger.nflow("Initializing ios_log"); // - 
+
+
+  var ln = new nflow.mods.logger_node(); // - 
+
+  window.ios_log = function (m) {
+    ln.trigger_input(JSON.parse(m));
+  }; // - globals 
+
+
+  window.ln = ln;
+}
+
+function test_eugene_multi() {
+  var en = eugene_node();
+  var sm = new nflow.mods.state_machine({
+    buffer_size: 200,
+    gui_mode: true,
+    debug_mode: false
+  });
+
+  _logger.logger.dev("Adding sensors");
+
+  sm.add_sensor({
+    id: "gyr_z",
+    f: _state_machine_elements.sme.sensors.dev_b.field("gyr_z")
+  });
+  sm.add_sensor({
+    id: "gyr_x",
+    f: _state_machine_elements.sme.sensors.dev_b.field("gyr_x")
+  });
+  sm.add_sensor({
+    id: "gyr_y",
+    f: _state_machine_elements.sme.sensors.dev_b.field("gyr_y")
+  });
+
+  _logger.logger.dev("Calling sm.init_gui");
+
+  sm.init_gui("nflow", {
+    gz: ["gyr_z", "gyr_y"]
+  }); // , gx : [ "gyr_x" ]   } ) 
+  // dont forget to wire up the nodes ! 
+
+  en.connect(sm);
   window.en = en;
 }
-},{"../module_resources/state_machine_elements.js":"src/module_resources/state_machine_elements.js","../core_modules/logger.js":"src/core_modules/logger.js","../module_resources/utils.js":"src/module_resources/utils.js","./gait_detector.js":"src/scripts/gait_detector.js","../module_resources/bokeh.js":"src/module_resources/bokeh.js"}],"src/index.js":[function(require,module,exports) {
+
+function nflow_init() {
+  _logger.logger.dev("initialized"); //tut_4()
+  //test_eugene_multi() 
+  //ios_log() 
+
+
+  ios_init();
+} // all the functionality for initiating the APP inside the IOS webview 
+
+
+function ios_init() {
+  window.ios_beep_1 = function () {
+    window.webkit.messageHandlers.soundHandler.postMessage(1072);
+  };
+
+  window.ios_beep_2 = function () {
+    window.webkit.messageHandlers.soundHandler.postMessage(1075);
+  }; //init the ios gait application 
+
+
+  var _ios_gait = ios_gait(),
+      gd = _ios_gait.gd; //link 
+
+
+  window.ios_link = function (m) {
+    //_dev_b.trigger_input(m) 
+    //console.log("!") 
+    gd.trigger_input(m);
+  };
+}
+
+function ios_gait() {
+  _logger.logger.nflow("Initializing ios_gait app"); //init gait detector 
+
+
+  var gd = (0, _gait_detector_ios.gait_detector_ios)({
+    buffer_size: 300,
+    debug_mode: false,
+    gui_mode: false
+  });
+  window.gd = gd;
+
+  _logger.logger.nflow("Finished init ");
+
+  return {
+    gd: gd
+  };
+}
+
+function log_ws() {
+  //1. create web_socket object 
+  var ws = new nflow.mods.web_socket({
+    url: "ws://localhost:1234",
+    dev_mode: false
+  }); //2. create data_storage object 
+
+  var l = new mods.logger_node(); //3. connect 1 & 2 
+
+  ws.connect(l); //4. start the ws stream 
+
+  ws.start_stream(); //export 
+
+  window.ws = ws;
+  window.l = l;
+}
+
+function make_recording(name, l) {
+  //1. create web_socket object 
+  var ws = new nflow.mods.web_socket({
+    url: "ws://localhost:1234"
+  }); //2. create data_storage object 
+
+  var ds = new nflow.mods.data_storage({
+    id: name,
+    is_sink: true
+  }); //window.x = {ws,ds}
+  //return 
+  //3. connect 1 & 2 
+
+  ws.connect(ds); //4. Enable saving on the data_storage object every 5s  
+
+  ds.start_saving(5); //5. start the websocket stream
+
+  ws.start_stream(); //6. Stop streaming 
+
+  setTimeout(function () {
+    ws.stop_stream();
+    ds.stop_saving();
+    console.log("Streaming and saving stopped.");
+  }, l * 1000);
+}
+},{"../module_resources/state_machine_elements.js":"src/module_resources/state_machine_elements.js","../core_modules/logger.js":"src/core_modules/logger.js","../module_resources/utils.js":"src/module_resources/utils.js","./gait_detector.js":"src/scripts/gait_detector.js","./gait_detector_ios.js":"src/scripts/gait_detector_ios.js","../module_resources/bokeh.js":"src/module_resources/bokeh.js"}],"src/index.js":[function(require,module,exports) {
 "use strict";
 
 var _nflow = require("./nflow.js");
@@ -24093,7 +24775,9 @@ var dev = _interopRequireWildcard(require("./scripts/dev.js"));
 
 var bokeh = _interopRequireWildcard(require("./module_resources/bokeh.js"));
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 //The main program 1
 
@@ -24149,7 +24833,40 @@ if (window.Bokeh) {
 
 _nflow.nflow.load_time = new Date().getTime(); //var d = {"misc" : ["dev_b_gyr_z"] } 
 //setTimeout( function() { window.d = flow.playback_gui(d) ; window.d[0].start_stream()  } , 1000)
-},{"./nflow.js":"src/nflow.js","./scripts/rose_gait_workflows.js":"src/scripts/rose_gait_workflows.js","./module_resources/utils.js":"src/module_resources/utils.js","./module_resources/sounds.js":"src/module_resources/sounds.js","./core_modules/logger.js":"src/core_modules/logger.js","./module_resources/script_loader.js":"src/module_resources/script_loader.js","./scripts/dev.js":"src/scripts/dev.js","./module_resources/bokeh.js":"src/module_resources/bokeh.js"}],"../../.nvm/versions/node/v11.4.0/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+//FOR IOS integration 
+// function setupWKWebViewJavascriptBridge(callback) {
+//     if (window.WKWebViewJavascriptBridge) { return callback(WKWebViewJavascriptBridge); }
+//     if (window.WKWVJBCallbacks) { return window.WKWVJBCallbacks.push(callback); }
+//     window.WKWVJBCallbacks = [callback];
+// //    window.webkit.messageHandlers.iOS_Native_InjectJavascript.postMessage(null)
+// }
+// logger.nflow("Initializing bridge") 
+// setupWKWebViewJavascriptBridge(function(bridge) {
+// 	/* Initialize your app here */
+// 	bridge.registerHandler('testJavascriptHandler', function(data, responseCallback) {
+// 		console.log('iOS called testJavascriptHandler with', data)
+// 		responseCallback({ 'Javascript Says':'Right back atcha!' })
+// 	})
+//     logger.nflow("Calling ios bridge testBridge") 
+// 	bridge.callHandler('testBridge', {'foo': 'bar'}, function(response) {
+// 		console.log('JS got response', response)
+// 	})
+//     logger.nflow("Assigning bridge to global object") 
+//     window.bridge = bridge 
+// })
+// logger.
+//    nflow("Bridge initialized") 
+
+window.setHeaderText = function (x) {
+  document.getElementById("headerText").innerHTML = x;
+};
+
+window.sendMsg = function (msg) {
+  _logger.logger.nflow("Sending msg!");
+
+  window.webkit.messageHandlers.jsHandler.postMessage(msg);
+};
+},{"./nflow.js":"src/nflow.js","./scripts/rose_gait_workflows.js":"src/scripts/rose_gait_workflows.js","./module_resources/utils.js":"src/module_resources/utils.js","./module_resources/sounds.js":"src/module_resources/sounds.js","./core_modules/logger.js":"src/core_modules/logger.js","./module_resources/script_loader.js":"src/module_resources/script_loader.js","./scripts/dev.js":"src/scripts/dev.js","./module_resources/bokeh.js":"src/module_resources/bokeh.js"}],"../../.nvm/versions/node/v12.11.0/lib/node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -24171,26 +24888,47 @@ function Module(moduleName) {
 }
 
 module.bundle.Module = Module;
+var checkedAssets, assetsToAccept;
 var parent = module.bundle.parent;
 
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49401" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49812" + '/');
 
   ws.onmessage = function (event) {
+    checkedAssets = {};
+    assetsToAccept = [];
     var data = JSON.parse(event.data);
 
     if (data.type === 'update') {
-      console.clear();
-      data.assets.forEach(function (asset) {
-        hmrApply(global.parcelRequire, asset);
-      });
+      var handled = false;
       data.assets.forEach(function (asset) {
         if (!asset.isNew) {
-          hmrAccept(global.parcelRequire, asset.id);
+          var didAccept = hmrAcceptCheck(global.parcelRequire, asset.id);
+
+          if (didAccept) {
+            handled = true;
+          }
         }
+      }); // Enable HMR for CSS by default.
+
+      handled = handled || data.assets.every(function (asset) {
+        return asset.type === 'css' && asset.generated.js;
       });
+
+      if (handled) {
+        console.clear();
+        data.assets.forEach(function (asset) {
+          hmrApply(global.parcelRequire, asset);
+        });
+        assetsToAccept.forEach(function (v) {
+          hmrAcceptRun(v[0], v[1]);
+        });
+      } else if (location.reload) {
+        // `location` global exists in a web worker context but lacks `.reload()` function.
+        location.reload();
+      }
     }
 
     if (data.type === 'reload') {
@@ -24278,7 +25016,7 @@ function hmrApply(bundle, asset) {
   }
 }
 
-function hmrAccept(bundle, id) {
+function hmrAcceptCheck(bundle, id) {
   var modules = bundle.modules;
 
   if (!modules) {
@@ -24286,9 +25024,27 @@ function hmrAccept(bundle, id) {
   }
 
   if (!modules[id] && bundle.parent) {
-    return hmrAccept(bundle.parent, id);
+    return hmrAcceptCheck(bundle.parent, id);
   }
 
+  if (checkedAssets[id]) {
+    return;
+  }
+
+  checkedAssets[id] = true;
+  var cached = bundle.cache[id];
+  assetsToAccept.push([bundle, id]);
+
+  if (cached && cached.hot && cached.hot._acceptCallbacks.length) {
+    return true;
+  }
+
+  return getParents(global.parcelRequire, id).some(function (id) {
+    return hmrAcceptCheck(global.parcelRequire, id);
+  });
+}
+
+function hmrAcceptRun(bundle, id) {
   var cached = bundle.cache[id];
   bundle.hotData = {};
 
@@ -24313,10 +25069,6 @@ function hmrAccept(bundle, id) {
 
     return true;
   }
-
-  return getParents(global.parcelRequire, id).some(function (id) {
-    return hmrAccept(global.parcelRequire, id);
-  });
 }
-},{}]},{},["../../.nvm/versions/node/v11.4.0/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","src/index.js"], null)
-//# sourceMappingURL=/src.a2b27638.map
+},{}]},{},["../../.nvm/versions/node/v12.11.0/lib/node_modules/parcel/src/builtins/hmr-runtime.js","src/index.js"], null)
+//# sourceMappingURL=/src.a2b27638.js.map

@@ -14,11 +14,9 @@ export default class data_storage extends base_node {
      * Manages data persistence and replay/simulation. Uses browser based local storage. 
      * @param {String} name - Session identifier, use null for default time string
      */ 
-    constructor(name) { 
+    constructor({id , is_source, is_sink}) { 
 
 	let node_name = "DS"
-	let is_source = true 
-	let is_sink = true
 	
 	super({node_name, is_source, is_sink})
 	
@@ -30,12 +28,20 @@ export default class data_storage extends base_node {
 	    this.log("No stream disabler implemented") 
 	}
 	
-	let main_handler = function(payload) { 
-	    this.data_history.push(obj) 
-	} 
+	//have to configure the main handler depending on whether this is source or sink 
+	var main_handler;
+	if (is_sink) { 
+	     main_handler = function(payload) { 
+		 this.data_history.push(payload) 
+	     }
+	} else if (is_source) { 
+	    main_handler = function(payload) { 
+		return payload // pass it on 
+	    }
+	}
 	
-	this.configure({stream_enabler, stream_disabler}) 
-	this.session_id = name || (new Date()).toISOString()
+	this.configure({stream_enabler, stream_disabler, main_handler}) 
+	this.session_id = id || (new Date()).toISOString()
 	this.data_history = [] 
 	this.part_counter = 1 
 	this.save_interval_id = null 
@@ -49,7 +55,7 @@ export default class data_storage extends base_node {
      */ 
     flush_data() { 
 	var to_save = JSON.stringify(this.data_history)
-	name    = this.session_id + "_part" + this.part_counter.toString() 
+	var name    = this.session_id + "_part" + this.part_counter.toString() 
 	this.data_history = [] 
 	localStorage.setItem(name, to_save) 
 	this.part_counter += 1 
@@ -157,7 +163,7 @@ export default class data_storage extends base_node {
 	    } else { 
 		//not on the last data point 
 		//now acces the next diff 
-		var delay = this.diffs[this.stream_index]
+		var delay = this.diffs[this.stream_index] || 50
 		//increment the stream_index 
 		this.stream_index += 1 
 		//schedule the loop again 

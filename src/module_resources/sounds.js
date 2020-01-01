@@ -1,5 +1,8 @@
 
 var sounds = {} 
+
+var AudioContext = window.AudioContext || window.webkitAudioContext;    
+
 sounds.ctx = new AudioContext()
 
 sounds.osc = function(type , freq, gainVal){

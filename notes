@@ -97,3 +97,20 @@ If a sensor chooses to ignore a data packet but there is another sensor which re
 
 
 
+
+
+
+!!! - > 
+WHOLE 1 is name of the xcode proj 
+
+
+TOFIX: 
+
+[] LATENCY  -- can browser connect to iphone bluetooth and communicate via messaging 
+[] gait detector -- WHY IS IT BEEPING SO MUCH ?
+
+
+[ ] FIRST -- see what latency is with HOTSPOT  
+[ ] try to get webview working on ios and then do the BRIDGE connector to pass the packets... (look up 
+    	- time spent: 
+	       - 2.5 hrs  , achieved some promising , though incomplete... results ;) 

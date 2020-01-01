@@ -14,52 +14,19 @@
   <style> 
     .lined { display: inline-block} 
     
-    .sidenav {
-       height: 100%;
-       width: 0;
-       position: fixed;
-       z-index: 1;
-       top: 0;
-       left: 0;
-       background-color: #111;
-       overflow-x: hidden;
-       transition: 0.5s;
-       padding-top: 60px;
-    }
-    
+
     #main {
     transition: margin-left .5s;
     padding: 16px;
     }
     
-    .closebtn { 
-      position: absolute;
-      top: 0;
-      right: 25px;
-      font-size: 36px;
-      margin-left: 50px;
-      margin-top : 20px;
-
-    }
-
   </style>
 
   <div id="main">
 
-    <div id="menu" class="sidenav">
-     <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"> 
-       <i class="fas fa-window-close"></i>
-     </a>
-    </div>
-    
-    <div class="lined" id="nav" onclick="openNav()">
-      <a href="javascript:void(0)">
-	<i class="fas fa-bars"></i>
-      </a>
-    </div>
 
     <div class="lined">
-      <h1>nFLOW v0.2</h1>
+      <h1 id="headerText">nFLOW v0.4</h1>
     </div>
 
     <hr> </hr>
@@ -67,18 +34,6 @@
   </div>
 
   
-  <script> 
-    function openNav() {
-    document.getElementById("menu").style.width = "250px";
-    document.getElementById("main").style.marginLeft = "250px";
-    }
-
-    function closeNav() {
-    document.getElementById("menu").style.width = "0";
-    document.getElementById("main").style.marginLeft= "0";
-    }
-
-  </script>
 
 </body>
 </html>

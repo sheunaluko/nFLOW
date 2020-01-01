@@ -71,11 +71,55 @@ nflow.load_time  = (new Date()).getTime()
 
 
 
+//FOR IOS integration 
+
+// function setupWKWebViewJavascriptBridge(callback) {
+//     if (window.WKWebViewJavascriptBridge) { return callback(WKWebViewJavascriptBridge); }
+//     if (window.WKWVJBCallbacks) { return window.WKWVJBCallbacks.push(callback); }
+//     window.WKWVJBCallbacks = [callback];
+// //    window.webkit.messageHandlers.iOS_Native_InjectJavascript.postMessage(null)
+// }
+
+
+// logger.nflow("Initializing bridge") 
+
+// setupWKWebViewJavascriptBridge(function(bridge) {
+
+// 	/* Initialize your app here */
+
+// 	bridge.registerHandler('testJavascriptHandler', function(data, responseCallback) {
+// 		console.log('iOS called testJavascriptHandler with', data)
+// 		responseCallback({ 'Javascript Says':'Right back atcha!' })
+// 	})
+    
+    
+        
+//     logger.nflow("Calling ios bridge testBridge") 
+// 	bridge.callHandler('testBridge', {'foo': 'bar'}, function(response) {
+// 		console.log('JS got response', response)
+// 	})
+    
+//     logger.nflow("Assigning bridge to global object") 
+//     window.bridge = bridge 
+// })
 
 
 
 
 
+
+// logger.
+//    nflow("Bridge initialized") 
+
+window.setHeaderText = function(x) { 
+    document.getElementById("headerText").innerHTML = x 
+}
+
+
+window.sendMsg = function(msg) { 
+    logger.nflow("Sending msg!") 
+    window.webkit.messageHandlers.jsHandler.postMessage(msg);
+}
 
 
 

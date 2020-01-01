@@ -2,6 +2,7 @@ import {sme}      from "../module_resources/state_machine_elements.js"
 import {logger} from "../core_modules/logger.js"
 import * as util from "../module_resources/utils.js"
 import {gait_detector} from "./gait_detector.js"
+import {gait_detector_ios} from "./gait_detector_ios.js"
 import * as bokeh from "../module_resources/bokeh.js"
 
 logger.register("dev") 
@@ -18,7 +19,6 @@ export function sm_ds_test() {
     var n = 200 
     logger.dev("Creating state machine with size: " + n) 
     var sm = new nflow.mods.state_machine({buffer_size :n, gui_mode:  true, debug_mode : false }) 
-    
     logger.dev("Adding sensors") 
     sm.add_sensor({id: "gyr_z" ,f: sme.sensors.dev_b.field("gyr_z")})
 
@@ -26,8 +26,7 @@ export function sm_ds_test() {
     sm.init_gui("nflow", { main : ["gyr_z" ] } ) 
     
     //will load the file from storage 
-    var ds = new nflow.mods.data_storage("eugene_walk_rev") 
-    ds.enable_stream() 
+    var ds = new nflow.mods.data_storage({id:"home_1",is_source:true})
         
     //and then connect
     ds.connect(sm) 
@@ -38,6 +37,21 @@ export function sm_ds_test() {
     window.ds = ds ; window.sm = sm ;
 } 
 
+
+export function ds_log() { 
+    
+    //will load the file from storage 
+    var ds = new nflow.mods.data_storage({id:"home_1",is_source:true}) 
+        
+    //and then connect
+    ds.connect(new nflow.mods.logger_node())
+    
+    //and start stream 
+    ds.start_stream() 
+    
+    window.ds = ds
+}
+
 export function test_sim_tf() { 
     let sim = new mods.simulator({mode : "sin" , rate : 0.005 } ) 
     let tf = new mods.transformer(function(d) { return {y : d['val'] + 10 } }  ) 
@@ -46,6 +60,7 @@ export function test_sim_tf() {
     //sim.connect(tf).connect(l).connect(ui)
     sim.connect(tf).connect(ui)
     sim.start_stream(50) 
+
     window.sim = sim 
     window.tf  = tf 
     window.ui  = ui 
@@ -82,6 +97,17 @@ export function dev_x1() {
 
 
 
+export function sample_walk_node() { 
+   //1. Get the sample data from nflow lib
+   let sample_walk = nflow.resources.sample_walk 
+
+   //2. Create a data_storage node with session_id 'sample_walk' which will hold the data
+   let walk_simulator = new nflow.mods.data_storage("sample_walk")
+   walk_simulator.set_session(sample_walk)   
+    
+   return walk_simulator
+    
+} 
 
 export function tut_1() { 
    //1. Get the sample data from nflow lib
@@ -183,23 +209,23 @@ export function tut_4() {
     })
 
     // create another transformer that gets the diff 
-    let _get_dy = new nflow.mods.transformer(function(payload) { 
-	if (!this.last_val) { 
-	    this.last_val = 0
-	} 
-	let result = payload.val - this.last_val
-	this.last_val = payload.val
-	return {val : result}
-    })
+    // let _get_dy = new nflow.mods.transformer(function(payload) { 
+    // 	if (!this.last_val) { 
+    // 	    this.last_val = 0
+    // 	} 
+    // 	let result = payload.val - this.last_val
+    // 	this.last_val = payload.val
+    // 	return {val : result}
+    // })
     
-    let _get_dy2 = new nflow.mods.transformer(function(payload) { 
-	if (!this.last_val) { 
-	    this.last_val = 0
-	} 
-	let result = payload.val - this.last_val
-	this.last_val = payload.val
-	return {val : result}
-    })
+    // let _get_dy2 = new nflow.mods.transformer(function(payload) { 
+    // 	if (!this.last_val) { 
+    // 	    this.last_val = 0
+    // 	} 
+    // 	let result = payload.val - this.last_val
+    // 	this.last_val = payload.val
+    // 	return {val : result}
+    // })
 
     let logger_node = new nflow.mods.logger_node() 
     
@@ -233,9 +259,6 @@ export function tut_4() {
    
 */ 
 
-function nflow_init() { 
-    gait_dev()
-} 
 
 export function eugene_node() { 
     var ds = new nflow.mods.data_storage("eugene_walk_rev") 
@@ -285,7 +308,7 @@ export function num_decs(d,n) {
 
 export function gait_dev() { 
     var gd = gait_detector({buffer_size : 300, debug_mode : false, gui_mode : true})
-    var en = eugene_node() 
+    var sw = sample_walk_node() 
     
     let _dev_b = new nflow.mods.transformer(function(payload) { 
 	if (payload.dev == 'B') { 
@@ -296,8 +319,170 @@ export function gait_dev() {
     })
 
     var ln = new nflow.mods.logger_node() 
-    en.connect(_dev_b).connect(gd)
+    sw.connect(_dev_b).connect(gd)
     
     window.gd = gd 
+    window.sw = sw
+    
+    
+}
+
+
+export function gait_dev_ws() { 
+    var gd = gait_detector({buffer_size : 300, debug_mode : false, gui_mode : true})
+    var ws = new nflow.mods.web_socket({url:"ws://localhost:1234",dev_mode:false})    
+    
+    let _dev_b = new nflow.mods.transformer(function(payload) { 
+	if (payload.dev == 'B') { 
+            return payload
+	} else { 
+            return nflow.SKIP_PAYLOAD
+	} 
+    })
+
+    //var ln = new nflow.mods.logger_node() 
+    ws.connect(_dev_b).connect(gd)
+    
+    window.gd = gd 
+    window.ws = ws
+}
+
+
+export function ios_log() { 
+    
+    logger.nflow("Initializing ios_log")
+    // - 
+    var ln = new nflow.mods.logger_node() 
+    // - 
+    window.ios_log = function(m) { 
+	ln.trigger_input(JSON.parse(m))
+    }
+    // - globals 
+    window.ln = ln 
+}
+
+export function test_eugene_multi() { 
+    var en = eugene_node() 
+    var sm = new nflow.mods.state_machine({buffer_size : 200 , gui_mode:  true, debug_mode : false }) 
+    
+    logger.dev("Adding sensors") 
+    sm.add_sensor({id: "gyr_z" ,f: sme.sensors.dev_b.field("gyr_z")})
+    sm.add_sensor({id: "gyr_x" ,f: sme.sensors.dev_b.field("gyr_x")})    
+    sm.add_sensor({id: "gyr_y" ,f: sme.sensors.dev_b.field("gyr_y")})        
+
+    logger.dev("Calling sm.init_gui") 
+    sm.init_gui("nflow", { gz : ["gyr_z" , "gyr_y" ]   } ) // , gx : [ "gyr_x" ]   } ) 
+    
+    // dont forget to wire up the nodes ! 
+    en.connect(sm) 
+    
     window.en = en 
+}
+
+
+
+function nflow_init() { 
+    logger.dev("initialized") 
+    //tut_4()
+    //test_eugene_multi() 
+    //ios_log() 
+  
+    ios_init() 
+    
+    
+} 
+
+// all the functionality for initiating the APP inside the IOS webview 
+export function ios_init() { 
+    
+    
+    window.ios_beep_1 = function() { 
+	window.webkit.messageHandlers.soundHandler.postMessage(1072)
+    } 
+    
+    window.ios_beep_2 = function(){
+	window.webkit.messageHandlers.soundHandler.postMessage(1075)
+    }
+    
+    
+    //init the ios gait application 
+    var {gd } = ios_gait() 
+
+    //link 
+    
+    window.ios_link  = function(m) { 
+	//_dev_b.trigger_input(m) 
+	//console.log("!") 
+	gd.trigger_input(m) 
+	
+    }
+
+}
+
+
+export function ios_gait() { 
+    
+    logger.nflow("Initializing ios_gait app")
+    
+    //init gait detector 
+    var gd = gait_detector_ios({buffer_size : 300, debug_mode : false, gui_mode : false})    
+    
+    
+    window.gd = gd 
+    
+    logger.nflow("Finished init ") 
+    
+    return { gd } 
+
+}
+
+
+
+
+
+export function log_ws() { 
+     //1. create web_socket object 
+    var ws = new nflow.mods.web_socket({url:"ws://localhost:1234",dev_mode:false})
+
+    //2. create data_storage object 
+    let l  = new mods.logger_node() 
+
+    //3. connect 1 & 2 
+    ws.connect(l) 
+
+    //4. start the ws stream 
+    ws.start_stream()
+    
+    //export 
+    window.ws = ws 
+    window.l = l 
+}
+
+export function make_recording(name,l) { 
+    
+    //1. create web_socket object 
+    var ws = new nflow.mods.web_socket({url:"ws://localhost:1234"})
+
+    //2. create data_storage object 
+    var ds = new nflow.mods.data_storage({id:name,is_sink:true})
+
+    //window.x = {ws,ds}
+    //return 
+    
+    //3. connect 1 & 2 
+    ws.connect(ds) 
+
+    //4. Enable saving on the data_storage object every 5s  
+    ds.start_saving(5) 
+
+    //5. start the websocket stream
+    ws.start_stream()
+    
+    //6. Stop streaming 
+    setTimeout(function() { 
+	ws.stop_stream() 
+	ds.stop_saving() 
+	console.log("Streaming and saving stopped.") 
+    }, l*1000)
+    
 }

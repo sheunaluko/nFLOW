@@ -244,9 +244,9 @@ export default class base_node {
 	/* stream stuff */ 
 	this.num_to_stream = null //for gating number of packets from source 
 	
-	/* only sources are disbabled by default */ 
-	this.streaming = opts.streaming || !opts.is_source 
-	this.stream_enabled = opts.stream_enabled ||  !opts.is_source 
+	/* WATCH out... default handling of stream enabling etc is confusing! */ 
+	this.streaming = opts.streaming || true 
+	this.stream_enabled = opts.stream_enabled || !opts.is_source 
 	    
 	/* configure the node type base on opts params  */ 
 	this.is_source     = opts.is_source 

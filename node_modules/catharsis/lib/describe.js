@@ -1,536 +1,545 @@
-'use strict';
+const _ = require('lodash');
+const fs = require('fs');
+const path = require('path');
+const stringify = require('./stringify');
+const Types = require('./types');
 
-var _ = require('underscore-contrib');
-var fs = require('fs');
-var path = require('path');
-var stringify = require('./stringify');
-var Types = require('./types');
-var util = require('util');
-
-var DEFAULT_OPTIONS = {
-	language: 'en',
-	resources: {
-		en: JSON.parse(fs.readFileSync(path.join(__dirname, '../res/en.json'), 'utf8'))
-	}
+const DEFAULT_OPTIONS = {
+    language: 'en',
+    resources: {
+        en: JSON.parse(fs.readFileSync(path.join(__dirname, '../res/en.json'), 'utf8'))
+    }
 };
 
 // order matters for these!
-var FUNCTION_DETAILS = ['new', 'this'];
-var FUNCTION_DETAILS_VARIABLES = ['functionNew', 'functionThis'];
-var MODIFIERS = ['optional', 'nullable', 'repeatable'];
+const FUNCTION_DETAILS = ['new', 'this'];
+const FUNCTION_DETAILS_VARIABLES = ['functionNew', 'functionThis'];
+const MODIFIERS = ['optional', 'nullable', 'repeatable'];
 
-var TEMPLATE_VARIABLES = [
-	'application',
-	'codeTagClose',
-	'codeTagOpen',
-	'element',
-	'field',
-	'functionNew',
-	'functionParams',
-	'functionReturns',
-	'functionThis',
-	'keyApplication',
-	'name',
-	'nullable',
-	'optional',
-	'param',
-	'prefix',
-	'repeatable',
-	'suffix',
-	'type'
+const TEMPLATE_VARIABLES = [
+    'application',
+    'codeTagClose',
+    'codeTagOpen',
+    'element',
+    'field',
+    'functionNew',
+    'functionParams',
+    'functionReturns',
+    'functionThis',
+    'keyApplication',
+    'name',
+    'nullable',
+    'optional',
+    'param',
+    'prefix',
+    'repeatable',
+    'suffix',
+    'type'
 ];
 
-var FORMATS = {
-	EXTENDED: 'extended',
-	SIMPLE: 'simple'
+const FORMATS = {
+    EXTENDED: 'extended',
+    SIMPLE: 'simple'
 };
 
 function makeTagOpen(codeTag, codeClass) {
-	var tagOpen = '';
-	var tags = codeTag ? codeTag.split(' ') : [];
+    let tagOpen = '';
+    const tags = codeTag ? codeTag.split(' ') : [];
 
-	tags.forEach(function(tag) {
-		var tagClass = codeClass ? util.format(' class="%s"', codeClass) : '';
-		tagOpen += util.format('<%s%s>', tag, tagClass);
-	});
+    tags.forEach(tag => {
+        const tagClass = codeClass ? ` class="${codeClass}"` : '';
 
-	return tagOpen;
+        tagOpen += `<${tag}${tagClass}>`;
+    });
+
+    return tagOpen;
 }
 
 function makeTagClose(codeTag) {
-	var tagClose = '';
-	var tags = codeTag ? codeTag.split(' ') : [];
+    let tagClose = '';
+    const tags = codeTag ? codeTag.split(' ') : [];
 
-	tags.reverse();
-	tags.forEach(function(tag) {
-		tagClose += util.format('</%s>', tag);
-	});
+    tags.reverse();
+    tags.forEach(tag => {
+        tagClose += `</${tag}>`;
+    });
 
-	return tagClose;
+    return tagClose;
 }
 
-function Result() {
-	this.description = '';
-	this.modifiers = {
-		functionNew: '',
-		functionThis: '',
-		optional: '',
-		nullable: '',
-		repeatable: ''
-	};
-	this.returns = '';
-}
+function reduceMultiple(context, keyName, contextName, translate, previous, current, index, items) {
+    let key;
 
-function Context(props) {
-	var self = this;
+    switch (index) {
+        case 0:
+            key = '.first.many';
+            break;
 
-	props = props || {};
+        case (items.length - 1):
+            key = '.last.many';
+            break;
 
-	TEMPLATE_VARIABLES.forEach(function(variable) {
-		self[variable] = props[variable] || '';
-	});
-}
+        default:
+            key = '.middle.many';
+    }
 
-function Describer(opts) {
-	var options;
+    key = keyName + key;
+    context[contextName] = items[index];
 
-	this._useLongFormat = true;
-	options = this._options = _.defaults(opts || {}, DEFAULT_OPTIONS);
-	this._stringifyOptions = _.defaults(options, {_ignoreModifiers: true});
-
-	// use a dictionary, not a Context object, so we can more easily merge this into Context objects
-	this._i18nContext = {
-		codeTagClose: makeTagClose(options.codeTag),
-		codeTagOpen: makeTagOpen(options.codeTag, options.codeClass)
-	};
-
-	// templates start out as strings; we lazily replace them with template functions
-	this._templates = options.resources[options.language];
-	if (!this._templates) {
-		throw new Error('I18N resources are not available for the language ' + options.language);
-	}
+    return previous + translate(key, context);
 }
 
 function modifierKind(useLongFormat) {
-	return useLongFormat ? FORMATS.EXTENDED : FORMATS.SIMPLE;
+    return useLongFormat ? FORMATS.EXTENDED : FORMATS.SIMPLE;
 }
 
 function buildModifierStrings(describer, modifiers, type, useLongFormat) {
-	var result = {};
+    const result = {};
 
-	modifiers.forEach(function(modifier) {
-		var key = modifierKind(useLongFormat);
-		var modifierStrings = describer[modifier](type[modifier]);
+    modifiers.forEach(modifier => {
+        const key = modifierKind(useLongFormat);
+        const modifierStrings = describer[modifier](type[modifier]);
 
-		result[modifier] = modifierStrings[key];
-	});
+        result[modifier] = modifierStrings[key];
+    });
 
-	return result;
+    return result;
 }
 
 function addModifiers(describer, context, result, type, useLongFormat) {
-	var keyPrefix = 'modifiers.' + modifierKind(useLongFormat);
-	var modifiers = buildModifierStrings(describer, MODIFIERS, type, useLongFormat);
+    const keyPrefix = `modifiers.${modifierKind(useLongFormat)}`;
+    const modifiers = buildModifierStrings(describer, MODIFIERS, type, useLongFormat);
 
-	MODIFIERS.forEach(function(modifier) {
-		var modifierText = modifiers[modifier] || '';
+    MODIFIERS.forEach(modifier => {
+        const modifierText = modifiers[modifier] || '';
 
-		result.modifiers[modifier] = modifierText;
-		if (!useLongFormat) {
-			context[modifier] = modifierText;
-		}
-	});
+        result.modifiers[modifier] = modifierText;
+        if (!useLongFormat) {
+            context[modifier] = modifierText;
+        }
+    });
 
-	context.prefix = describer._translate(keyPrefix + '.prefix', context);
-	context.suffix = describer._translate(keyPrefix + '.suffix', context);
+    context.prefix = describer._translate(`${keyPrefix}.prefix`, context);
+    context.suffix = describer._translate(`${keyPrefix}.suffix`, context);
 }
 
-function addFunctionModifiers(describer, context, result, type, useLongFormat) {
-	var functionDetails = buildModifierStrings(describer, FUNCTION_DETAILS, type, useLongFormat);
-	var kind = modifierKind(useLongFormat);
-	var strings = [];
+function addFunctionModifiers(describer, context, {modifiers}, type, useLongFormat) {
+    const functionDetails = buildModifierStrings(describer, FUNCTION_DETAILS, type, useLongFormat);
 
-	FUNCTION_DETAILS.forEach(function(functionDetail, i) {
-		var functionExtraInfo = functionDetails[functionDetail] || '';
-		var functionDetailsVariable = FUNCTION_DETAILS_VARIABLES[i];
+    FUNCTION_DETAILS.forEach((functionDetail, i) => {
+        const functionExtraInfo = functionDetails[functionDetail] || '';
+        const functionDetailsVariable = FUNCTION_DETAILS_VARIABLES[i];
 
-		result.modifiers[functionDetailsVariable] = functionExtraInfo;
-		if (!useLongFormat) {
-			context[functionDetailsVariable] += functionExtraInfo;
-		}
-	});
+        modifiers[functionDetailsVariable] = functionExtraInfo;
+        if (!useLongFormat) {
+            context[functionDetailsVariable] += functionExtraInfo;
+        }
+    });
 }
 
 // Replace 2+ whitespace characters with a single whitespace character.
 function collapseSpaces(string) {
-	return string.replace(/(\s)+/g, '$1');
+    return string.replace(/(\s)+/g, '$1');
 }
 
-Describer.prototype._stringify = function(type, typeString, useLongFormat) {
-	var context = new Context({
-		type: typeString || stringify(type, this._stringifyOptions)
-	});
-	var result = new Result();
-
-	addModifiers(this, context, result, type, useLongFormat);
-	result.description = this._translate('type', context).trim();
-
-	return result;
-};
-
-Describer.prototype._translate = function(key, context) {
-	var result;
-	var templateFunction = _.getPath(this._templates, key);
-
-	context = context || new Context();
-
-	if (templateFunction === undefined) {
-		throw new Error(util.format('The template %s does not exist for the language %s', key,
-			this._options.language));
-	}
-
-	// compile and cache the template function if necessary
-	if (typeof templateFunction === 'string') {
-		// force the templates to use the `context` object
-		templateFunction = templateFunction.replace(/\<\%\= /g, '<%= context.');
-		templateFunction = _.template(templateFunction, null, {variable: 'context'});
-		_.setPath(this._templates, templateFunction, key);
-	}
-
-	result = (templateFunction(_.extend(context, this._i18nContext)) || '')
-		// strip leading spaces
-		.replace(/^\s+/, '');
-	result = collapseSpaces(result);
-
-	return result;
-};
-
-Describer.prototype._modifierHelper = function(key, modifierPrefix, context) {
-	modifierPrefix = modifierPrefix || '';
-
-	return {
-		extended: key ?
-			this._translate(util.format('%s.%s.%s', modifierPrefix, FORMATS.EXTENDED, key),
-				context) :
-			'',
-		simple: key ?
-			this._translate(util.format('%s.%s.%s', modifierPrefix, FORMATS.SIMPLE, key), context) :
-			''
-	};
-};
-
-Describer.prototype._translateModifier = function(key, context) {
-	return this._modifierHelper(key, 'modifiers', context);
-};
-
-Describer.prototype._translateFunctionModifier = function(key, context) {
-	return this._modifierHelper(key, 'function', context);
-};
-
-function getApplicationKey(type, applications) {
-	if (applications.length === 1) {
-		if (/[Aa]rray/.test(type.expression.name)) {
-			return 'array';
-		} else {
-			return 'other';
-		}
-	} else if (/[Ss]tring/.test(applications[0].name)) {
-		// object with string keys
-		return 'object';
-	} else {
-		// object with non-string keys
-		return 'objectNonString';
-	}
+function getApplicationKey({expression}, applications) {
+    if (applications.length === 1) {
+        if (/[Aa]rray/.test(expression.name)) {
+            return 'array';
+        } else {
+            return 'other';
+        }
+    } else if (/[Ss]tring/.test(applications[0].name)) {
+        // object with string keys
+        return 'object';
+    } else {
+        // object with non-string keys
+        return 'objectNonString';
+    }
 }
 
-Describer.prototype.application = function(type, useLongFormat) {
-	var applications = type.applications.slice(0);
-	var context = new Context();
-	var key = 'application.' + getApplicationKey(type, applications);
-	var result = new Result();
-	var self = this;
-
-	addModifiers(this, context, result, type, useLongFormat);
-
-	context.type = this.type(type.expression).description;
-	context.application = this.type(applications.pop()).description;
-	context.keyApplication = applications.length ? this.type(applications.pop()).description : '';
-
-	result.description = this._translate(key, context).trim();
-
-	return result;
-};
-
-function reduceMultiple(context, keyName, contextName, translate, previous, current, index, items) {
-	var key =
-		index === 0 ? '.first.many' :
-		index === (items.length - 1) ? '.last.many' :
-		'.middle.many';
-
-	key = keyName + key;
-	context[contextName] = items[index];
-
-	return previous + translate(key, context);
+class Result {
+    constructor() {
+        this.description = '';
+        this.modifiers = {
+            functionNew: '',
+            functionThis: '',
+            optional: '',
+            nullable: '',
+            repeatable: ''
+        };
+        this.returns = '';
+    }
 }
 
-Describer.prototype.elements = function(type, useLongFormat) {
-	var context = new Context();
-	var items = type.elements.slice(0);
-	var result = new Result();
+class Context {
+    constructor(props) {
+        props = props || {};
 
-	addModifiers(this, context, result, type, useLongFormat);
-	result.description = this._combineMultiple(items, context, 'union', 'element', useLongFormat);
+        TEMPLATE_VARIABLES.forEach(variable => {
+            this[variable] = props[variable] || '';
+        });
+    }
+}
 
-	return result;
-};
+class Describer {
+    constructor(opts) {
+        let options;
 
-Describer.prototype.new = function(funcNew) {
-	var context = new Context({'functionNew': this.type(funcNew).description});
-	var key = funcNew ? 'new' : '';
+        this._useLongFormat = true;
+        options = this._options = _.defaults(opts || {}, DEFAULT_OPTIONS);
+        this._stringifyOptions = _.defaults(options, { _ignoreModifiers: true });
 
-	return this._translateFunctionModifier(key, context);
-};
+        // use a dictionary, not a Context object, so we can more easily merge this into Context objects
+        this._i18nContext = {
+            codeTagClose: makeTagClose(options.codeTag),
+            codeTagOpen: makeTagOpen(options.codeTag, options.codeClass)
+        };
 
-Describer.prototype.nullable = function(nullable) {
-	var key = nullable === true ? 'nullable' :
-		nullable === false ? 'nonNullable' :
-		'';
+        // templates start out as strings; we lazily replace them with template functions
+        this._templates = options.resources[options.language];
+        if (!this._templates) {
+            throw new Error(`I18N resources are not available for the language ${options.language}`);
+        }
+    }
 
-	return this._translateModifier(key);
-};
+    _stringify(type, typeString, useLongFormat) {
+        const context = new Context({
+            type: typeString || stringify(type, this._stringifyOptions)
+        });
+        const result = new Result();
 
-Describer.prototype.optional = function(optional) {
-	var key = (optional === true) ? 'optional' : '';
+        addModifiers(this, context, result, type, useLongFormat);
+        result.description = this._translate('type', context).trim();
 
-	return this._translateModifier(key);
-};
+        return result;
+    }
 
-Describer.prototype.repeatable = function(repeatable) {
-	var key = (repeatable === true) ? 'repeatable' : '';
+    _translate(key, context) {
+        let result;
+        let templateFunction = _.get(this._templates, key);
 
-	return this._translateModifier(key);
-};
+        context = context || new Context();
 
-Describer.prototype._combineMultiple = function(items, context, keyName, contextName,
-	useLongFormat) {
-	var result = new Result();
-	var self = this;
-	var strings;
+        if (templateFunction === undefined) {
+            throw new Error(`The template ${key} does not exist for the ` +
+                `language ${this._options.language}`);
+        }
 
-	strings = typeof items[0] === 'string' ?
-		items.slice(0) :
-		items.map(function(item) {
-			return self.type(item).description;
-		});
+        // compile and cache the template function if necessary
+        if (typeof templateFunction === 'string') {
+            // force the templates to use the `context` object
+            templateFunction = templateFunction.replace(/<%= /g, '<%= context.');
+            templateFunction = _.template(templateFunction, {variable: 'context'});
+            _.set(this._templates, key, templateFunction);
+        }
 
-	switch(strings.length) {
-		case 0:
-			// falls through
-		case 1:
-			context[contextName] = strings[0] || '';
-			result.description = this._translate(keyName + '.first.one', context);
-			break;
-		case 2:
-			strings.forEach(function(item, idx) {
-				var key = keyName + (idx === 0 ? '.first' : '.last' ) + '.two';
+        result = (templateFunction(_.extend(context, this._i18nContext)) || '')
+            // strip leading spaces
+            .replace(/^\s+/, '');
+        result = collapseSpaces(result);
 
-				context[contextName] = item;
-				result.description += self._translate(key, context);
-			});
-			break;
-		default:
-			result.description = strings.reduce(reduceMultiple.bind(null, context, keyName,
-				contextName, this._translate.bind(this)), '');
-	}
+        return result;
+    }
 
-	return result.description.trim();
-};
+    _modifierHelper(key, modifierPrefix = '', context) {
+        return {
+            extended: key ?
+                this._translate(`${modifierPrefix}.${FORMATS.EXTENDED}.${key}`, context) :
+                '',
+            simple: key ?
+                this._translate(`${modifierPrefix}.${FORMATS.SIMPLE}.${key}`, context) :
+                ''
+        };
+    }
 
-Describer.prototype.params = function(params, functionContext) {
-	var context = new Context();
-	var result = new Result();
-	var self = this;
-	var strings;
+    _translateModifier(key, context) {
+        return this._modifierHelper(key, 'modifiers', context);
+    }
 
-	// TODO: this hardcodes the order and placement of functionNew and functionThis; need to move
-	// this to the template (and also track whether to put a comma after the last modifier)
-	functionContext = functionContext || {};
-	params = params || [];
-	strings = params.map(function(param) {
-		return self.type(param).description;
-	});
+    _translateFunctionModifier(key, context) {
+        return this._modifierHelper(key, 'function', context);
+    }
 
-	if (functionContext.functionThis) {
-		strings.unshift(functionContext.functionThis);
-	}
-	if (functionContext.functionNew) {
-		strings.unshift(functionContext.functionNew);
-	}
-	result.description = this._combineMultiple(strings, context, 'params', 'param', false);
+    application(type, useLongFormat) {
+        const applications = type.applications.slice(0);
+        const context = new Context();
+        const key = `application.${getApplicationKey(type, applications)}`;
+        const result = new Result();
 
-	return result;
-};
+        addModifiers(this, context, result, type, useLongFormat);
 
-Describer.prototype.this = function(funcThis) {
-	var context = new Context({'functionThis': this.type(funcThis).description});
-	var key = funcThis ? 'this' : '';
+        context.type = this.type(type.expression).description;
+        context.application = this.type(applications.pop()).description;
+        context.keyApplication = applications.length ? this.type(applications.pop()).description : '';
 
-	return this._translateFunctionModifier(key, context);
-};
+        result.description = this._translate(key, context).trim();
 
-Describer.prototype.type = function(type, useLongFormat) {
-	var result = new Result();
+        return result;
+    }
 
-	if (useLongFormat === undefined) {
-		useLongFormat = this._useLongFormat;
-	}
-	// ensure we don't use the long format for inner types
-	this._useLongFormat = false;
+    elements(type, useLongFormat) {
+        const context = new Context();
+        const items = type.elements.slice(0);
+        const result = new Result();
 
-	if (!type) {
-		return result;
-	}
+        addModifiers(this, context, result, type, useLongFormat);
+        result.description = this._combineMultiple(items, context, 'union', 'element');
 
-	switch(type.type) {
-		case Types.AllLiteral:
-			result = this._stringify(type, this._translate('all'), useLongFormat);
-			break;
-		case Types.FunctionType:
-			result = this._signature(type, useLongFormat);
-			break;
-		case Types.NameExpression:
-			result = this._stringify(type, null, useLongFormat);
-			break;
-		case Types.NullLiteral:
-			result = this._stringify(type, this._translate('null'), useLongFormat);
-			break;
-		case Types.RecordType:
-			result = this._record(type, useLongFormat);
-			break;
-		case Types.TypeApplication:
-			result = this.application(type, useLongFormat);
-			break;
-		case Types.TypeUnion:
-			result = this.elements(type, useLongFormat);
-			break;
-		case Types.UndefinedLiteral:
-			result = this._stringify(type, this._translate('undefined'), useLongFormat);
-			break;
-		case Types.UnknownLiteral:
-			result = this._stringify(type, this._translate('unknown'), useLongFormat);
-			break;
-		default:
-			throw new Error('Unknown type: ' + JSON.stringify(type));
-	}
+        return result;
+    }
 
-	return result;
-};
+    new(funcNew) {
+        const context = new Context({'functionNew': this.type(funcNew).description});
+        const key = funcNew ? 'new' : '';
 
-Describer.prototype._record = function(type, useLongFormat) {
-	var context = new Context();
-	var items;
-	var result = new Result();
+        return this._translateFunctionModifier(key, context);
+    }
 
-	items = this._recordFields(type.fields);
+    nullable(nullable) {
+        let key;
 
-	addModifiers(this, context, result, type, useLongFormat);
-	result.description = this._combineMultiple(items, context, 'record', 'field', useLongFormat);
+        switch (nullable) {
+            case true:
+                key = 'nullable';
+                break;
 
-	return result;
-};
+            case false:
+                key = 'nonNullable';
+                break;
 
-Describer.prototype._recordFields = function(fields) {
-	var context = new Context();
-	var result = [];
-	var self = this;
+            default:
+                key = '';
+        }
 
-	if (!fields.length) {
-		return result;
-	}
+        return this._translateModifier(key);
+    }
 
-	result = fields.map(function(field) {
-		var key = 'field.' + (field.value ? 'typed' : 'untyped');
+    optional(optional) {
+        const key = (optional === true) ? 'optional' : '';
 
-		context.name = self.type(field.key).description;
-		if (field.value) {
-			context.type = self.type(field.value).description;
-		}
+        return this._translateModifier(key);
+    }
 
-		return self._translate(key, context);
-	});
+    repeatable(repeatable) {
+        const key = (repeatable === true) ? 'repeatable' : '';
 
-	return result;
-};
+        return this._translateModifier(key);
+    }
 
-Describer.prototype._addLinks = function(nameString) {
-	var linkClass = '';
-	var options = this._options;
-	var result = nameString;
+    _combineMultiple(items, context, keyName, contextName) {
+        const result = new Result();
+        const self = this;
+        let strings;
+
+        strings = typeof items[0] === 'string' ?
+            items.slice(0) :
+            items.map(item => self.type(item).description);
+
+        switch (strings.length) {
+            case 0:
+                // falls through
+            case 1:
+                context[contextName] = strings[0] || '';
+                result.description = this._translate(`${keyName}.first.one`, context);
+                break;
+            case 2:
+                strings.forEach((item, idx) => {
+                    const key = `${keyName + (idx === 0 ? '.first' : '.last' )}.two`;
+
+                    context[contextName] = item;
+                    result.description += self._translate(key, context);
+                });
+                break;
+            default:
+                result.description = strings.reduce(reduceMultiple.bind(null, context, keyName,
+                    contextName, this._translate.bind(this)), '');
+        }
+
+        return result.description.trim();
+    }
+
+    /* eslint-enable no-unused-vars */
+
+    params(params, functionContext) {
+        const context = new Context();
+        const result = new Result();
+        const self = this;
+        let strings;
+
+        // TODO: this hardcodes the order and placement of functionNew and functionThis; need to move
+        // this to the template (and also track whether to put a comma after the last modifier)
+        functionContext = functionContext || {};
+        params = params || [];
+        strings = params.map(param => self.type(param).description);
+
+        if (functionContext.functionThis) {
+            strings.unshift(functionContext.functionThis);
+        }
+        if (functionContext.functionNew) {
+            strings.unshift(functionContext.functionNew);
+        }
+        result.description = this._combineMultiple(strings, context, 'params', 'param');
+
+        return result;
+    }
+
+    this(funcThis) {
+        const context = new Context({'functionThis': this.type(funcThis).description});
+        const key = funcThis ? 'this' : '';
+
+        return this._translateFunctionModifier(key, context);
+    }
+
+    type(type, useLongFormat) {
+        let result = new Result();
+
+        if (useLongFormat === undefined) {
+            useLongFormat = this._useLongFormat;
+        }
+        // ensure we don't use the long format for inner types
+        this._useLongFormat = false;
+
+        if (!type) {
+            return result;
+        }
+
+        switch (type.type) {
+            case Types.AllLiteral:
+                result = this._stringify(type, this._translate('all'), useLongFormat);
+                break;
+            case Types.FunctionType:
+                result = this._signature(type, useLongFormat);
+                break;
+            case Types.NameExpression:
+                result = this._stringify(type, null, useLongFormat);
+                break;
+            case Types.NullLiteral:
+                result = this._stringify(type, this._translate('null'), useLongFormat);
+                break;
+            case Types.RecordType:
+                result = this._record(type, useLongFormat);
+                break;
+            case Types.TypeApplication:
+                result = this.application(type, useLongFormat);
+                break;
+            case Types.TypeUnion:
+                result = this.elements(type, useLongFormat);
+                break;
+            case Types.UndefinedLiteral:
+                result = this._stringify(type, this._translate('undefined'), useLongFormat);
+                break;
+            case Types.UnknownLiteral:
+                result = this._stringify(type, this._translate('unknown'), useLongFormat);
+                break;
+            default:
+                throw new Error(`Unknown type: ${JSON.stringify(type)}`);
+        }
+
+        return result;
+    }
+
+    _record(type, useLongFormat) {
+        const context = new Context();
+        let items;
+        const result = new Result();
+
+        items = this._recordFields(type.fields);
+
+        addModifiers(this, context, result, type, useLongFormat);
+        result.description = this._combineMultiple(items, context, 'record', 'field');
+
+        return result;
+    }
+
+    _recordFields(fields) {
+        const context = new Context();
+        let result = [];
+        const self = this;
+
+        if (!fields.length) {
+            return result;
+        }
+
+        result = fields.map(field => {
+            const key = `field.${field.value ? 'typed' : 'untyped'}`;
+
+            context.name = self.type(field.key).description;
+            if (field.value) {
+                context.type = self.type(field.value).description;
+            }
+
+            return self._translate(key, context);
+        });
+
+        return result;
+    }
+
+    _addLinks(nameString) {
+        let linkClass = '';
+        const options = this._options;
 
 
-	if (options.links && Object.prototype.hasOwnProperty.call(options.links, nameString)) {
-		if (options.linkClass) {
-			linkClass = util.format(' class="%s"', options.linkClass);
-		}
+        if (options.links && Object.prototype.hasOwnProperty.call(options.links, nameString)) {
+            if (options.linkClass) {
+                linkClass = ` class="${options.linkClass}"`;
+            }
 
-		nameString = util.format('<a href="%s"%s>%s</a>', options.links[nameString], linkClass,
-			nameString);
-	}
+            nameString = `<a href="${options.links[nameString]}"${linkClass}>${nameString}</a>`;
+        }
 
-	return nameString;
-};
+        return nameString;
+    }
 
-Describer.prototype.result = function(type, useLongFormat) {
-	var context = new Context();
-	var description;
-	var key = 'function.' + modifierKind(useLongFormat) + '.returns';
-	var result = new Result();
+    result(type, useLongFormat) {
+        const context = new Context();
+        const key = `function.${modifierKind(useLongFormat)}.returns`;
+        const result = new Result();
 
-	context.type = this.type(type).description;
+        context.type = this.type(type).description;
 
-	addModifiers(this, context, result, type, useLongFormat);
-	result.description = this._translate(key, context);
+        addModifiers(this, context, result, type, useLongFormat);
+        result.description = this._translate(key, context);
 
-	return result;
-};
+        return result;
+    }
 
-Describer.prototype._signature = function(type, useLongFormat) {
-	var context = new Context();
-	var functionModifiers;
-	var kind = modifierKind(useLongFormat);
-	var result = new Result();
-	var returns;
-	var self = this;
+    _signature(type, useLongFormat) {
+        const context = new Context();
+        const kind = modifierKind(useLongFormat);
+        const result = new Result();
+        let returns;
 
-	addModifiers(this, context, result, type, useLongFormat);
-	addFunctionModifiers(this, context, result, type, useLongFormat);
+        addModifiers(this, context, result, type, useLongFormat);
+        addFunctionModifiers(this, context, result, type, useLongFormat);
 
-	context.functionParams = this.params(type.params || [], context).description;
+        context.functionParams = this.params(type.params || [], context).description;
 
-	if (type.result) {
-		returns = this.result(type.result, useLongFormat);
-		if (useLongFormat) {
-			result.returns = returns.description;
-		} else {
-			context.functionReturns = returns.description;
-		}
-	}
+        if (type.result) {
+            returns = this.result(type.result, useLongFormat);
+            if (useLongFormat) {
+                result.returns = returns.description;
+            } else {
+                context.functionReturns = returns.description;
+            }
+        }
 
-	result.description += this._translate('function.' + kind + '.signature', context).trim();
+        result.description += this._translate(`function.${kind}.signature`, context).trim();
 
-	return result;
-};
+        return result;
+    }
+}
 
-module.exports = function(type, options) {
-	var simple = new Describer(options).type(type, false);
-	var extended = new Describer(options).type(type);
+module.exports = (type, options) => {
+    const simple = new Describer(options).type(type, false);
+    const extended = new Describer(options).type(type);
 
-	[simple, extended].forEach(function(result) {
-		result.description = collapseSpaces(result.description.trim());
-	});
+    [simple, extended].forEach(result => {
+        result.description = collapseSpaces(result.description.trim());
+    });
 
-	return {
-		simple: simple.description,
-		extended: extended
-	};
+    return {
+        simple: simple.description,
+        extended
+    };
 };

@@ -3,7 +3,7 @@
 // filefor collecting definitions of Sensors and transitioners
 
 import {logger} from "../core_modules/logger.js"
-import {util}     from "./utils.js"
+import * as util    from "./utils.js"
 
 logger.register("sme") 
 
@@ -18,6 +18,14 @@ sme.sensors.field = function(field) {
 	return util.last(sm.buffer)[field] 
     }
 } 
+
+sme.sensors.foo = function(x) { 
+    return function(sm) { 
+	console.log(sm)
+	return 20 
+    }
+    
+}
 
 
 //field diff will take the  diff of a particular field in the data object 

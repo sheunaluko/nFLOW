@@ -80,7 +80,7 @@ function create_multi_line_graph(opts) {
     // WOW ! -- how lucky to find sizing_mode : stretch_both lmao 
     // https://github.com/bokeh/bokeh/issues/4958
     
-    var p = Bokeh.Plotting.figure({ title: title,sizing_mode : 'stretch_both' })
+    var p = Bokeh.Plotting.figure({ title: title   }) //,sizing_mode : 'stretch_both' })
     
      
     //add the multiline 
