@@ -39,6 +39,6 @@ This is what you will see when you open the html page in your web browser:
 
 ![](wrtsm_2.gif)
 
-It is a graph of two sine waves being plotted in real time, with a state machine proccessing every data packet as it arrives. Documentation and demonstration of source code may be available upon request to alukosheun@gmail.com . 
+It is a graph of two sine waves being plotted in real time, with a state machine proccessing every data packet as it arrives. If interested in documentation and demonstration of source code please contact alukosheun@gmail.com . 
 
 @Copyright Sheun Aluko, 2019-2020
