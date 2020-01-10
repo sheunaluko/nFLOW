@@ -1,0 +1,889 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>nFLOW documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+
+<!-- RTD Extra Head -->
+
+<!-- 
+Always link to the latest version, as canonical.
+http://docs.readthedocs.org/en/latest/canonical.html
+-->
+<link rel="canonical" href="https://wrtsm.readthedocs.io/en/latest/" />
+
+<link rel="stylesheet" href="https://assets.readthedocs.org/static/css/readthedocs-doc-embed.css" type="text/css" />
+
+<script type="text/javascript" src="_static/readthedocs-data.js"></script>
+
+<!-- Add page-specific data, which must exist in the page js, not global -->
+<script type="text/javascript">
+READTHEDOCS_DATA['page'] = 'index'
+</script>
+
+<script type="text/javascript" src="https://assets.readthedocs.org/static/javascript/readthedocs-analytics.js"></script>
+
+<!-- end RTD <extrahead> -->
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html#document-index" class="icon icon-home"> nFLOW
+          
+
+          
+          </a>
+
+          
+            
+            
+            
+              <div class="version">
+                latest
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-introduction">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#what-is-nflow">What is nFLOW?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#software-architecture">Software Architecture</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-modules">Modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#base-node">Base Node</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#web-socket">Web Socket</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#data-storage">Data Storage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#transformer">Transformer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#event-detector">Event Detector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#logger">Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#simulator">Simulator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#state-machine">State Machine</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-server_implementation">Server Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-getting_started">Getting started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#tutorial">Tutorial</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html#document-index">nFLOW</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html#document-index">Docs</a> &raquo;</li>
+        
+      <li>nFLOW  documentation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            
+              <a href="https://github.com/sheunaluko/webrt_state_machine/blob/master/docs/index.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="welcome-to-nflow-s-documentation">
+<h1>Welcome to nFLOW’s documentation!<a class="headerlink" href="#welcome-to-nflow-s-documentation" title="Permalink to this headline">¶</a></h1>
+<a class="reference internal image-reference" href="_images/wrtsm.gif"><img alt="_images/wrtsm.gif" src="_images/wrtsm.gif" style="width: 538.0px; height: 269.0px;" /></a>
+<div class="toctree-wrapper compound">
+<span id="document-introduction"></span><div class="section" id="introduction">
+<span id="introduction-page"></span><h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="what-is-nflow">
+<span id="explainer"></span><h3>What is nFLOW?<a class="headerlink" href="#what-is-nflow" title="Permalink to this headline">¶</a></h3>
+<p>nFLOW (Node Flow) is a javascript library that was built for protyping and implementing real time detection and feedback systems. Data is piped in realtime via websockets into a configurable state machine, which allows visualization of both raw and derived data features. Both raw data and derived features trigger state transitions through arbitrarily defined “detectors” and “applicators”, which allows for the implementation of various feedback and detection systems.</p>
+</div>
+<div class="section" id="software-architecture">
+<span id="architecture"></span><h3>Software Architecture<a class="headerlink" href="#software-architecture" title="Permalink to this headline">¶</a></h3>
+<p>Broadly, nFLOW consists of the following submodules:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">base_node</span>      <span class="p">(</span><span class="nx">base</span> <span class="kr">class</span> <span class="k">for</span> <span class="nx">defining</span> <span class="nx">inheritable</span> <span class="nx">attributes</span> <span class="k">of</span> <span class="nx">nflow</span> <span class="s2">&quot;nodes&quot;</span><span class="p">)</span>
+<span class="nx">logger_node</span>    <span class="p">(</span><span class="nx">logs</span> <span class="nx">the</span> <span class="nx">output</span> <span class="nx">that</span> <span class="nx">is</span> <span class="nx">piped</span> <span class="nx">to</span> <span class="nx">it</span> <span class="o">-</span> <span class="nx">often</span> <span class="nx">used</span> <span class="k">for</span> <span class="nx">debugging</span> <span class="nx">and</span> <span class="nx">inspection</span><span class="p">)</span>
+<span class="nx">transformer</span>    <span class="p">(</span><span class="nx">applies</span> <span class="nx">a</span> <span class="nx">transformer</span> <span class="kd">function</span> <span class="nx">to</span> <span class="nx">a</span> <span class="nx">data</span> <span class="nx">stream</span><span class="p">)</span>
+<span class="nx">web_socket</span>     <span class="p">(</span><span class="nx">establishes</span> <span class="nx">and</span> <span class="nx">manages</span> <span class="nx">connection</span> <span class="nx">to</span> <span class="nx">socket</span> <span class="nx">data</span> <span class="nx">streams</span><span class="p">)</span>
+<span class="nx">data_storage</span>   <span class="p">(</span><span class="kr">implements</span> <span class="nx">data</span> <span class="nx">persistence</span><span class="p">,</span> <span class="nx">replay</span><span class="p">,</span> <span class="nx">and</span> <span class="nx">download</span><span class="p">)</span>
+<span class="nx">simulator</span>      <span class="p">(</span><span class="nx">generates</span> <span class="nx">signals</span> <span class="nx">and</span> <span class="nx">can</span> <span class="nx">be</span> <span class="nx">used</span> <span class="k">for</span> <span class="nx">testing</span> <span class="nx">and</span> <span class="nx">development</span><span class="p">)</span>
+<span class="nx">state_machine</span>  <span class="p">(</span><span class="nx">prototypes</span> <span class="nx">and</span> <span class="nx">implments</span> <span class="nx">realtime</span> <span class="nx">detection</span> <span class="nx">or</span> <span class="nx">feedback</span> <span class="nx">systems</span><span class="p">)</span>
+<span class="nx">ui</span>             <span class="p">(</span><span class="nx">defines</span> <span class="nx">classes</span> <span class="k">for</span> <span class="nx">realtime</span> <span class="nx">signal</span> <span class="nx">graphing</span><span class="p">)</span>
+<span class="nx">event_detector</span> <span class="p">(</span><span class="nx">detects</span> <span class="nx">and</span> <span class="nx">outputs</span> <span class="s2">&quot;events&quot;</span> <span class="nx">from</span> <span class="nx">arbitrary</span> <span class="nx">input</span> <span class="nx">signals</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Use the navigation bar to the left to learn more about each of these components, or proceed to <a class="reference internal" href="index.html#document-getting_started"><span class="doc">Getting started</span></a>.</p>
+</div>
+</div>
+<span id="document-modules"></span><div class="section" id="modules">
+<span id="id1"></span><h2>Modules<a class="headerlink" href="#modules" title="Permalink to this headline">¶</a></h2>
+<p>In the spirit of modular software, and since nFLOW consists of a network of <code class="file docutils literal notranslate"><span class="pre">nodes</span></code> piping and analyzing signals in realtime, the <code class="file docutils literal notranslate"><span class="pre">base_node</span></code> class was created to collect shared <code class="file docutils literal notranslate"><span class="pre">node</span></code> attributes into an inheritable structure. It is described below.  Most of the classes described below inherit from <code class="file docutils literal notranslate"><span class="pre">base_node</span></code>, though some may override certain methods.</p>
+<div class="section" id="base-node">
+<span id="id2"></span><h3>Base Node<a class="headerlink" href="#base-node" title="Permalink to this headline">¶</a></h3>
+<p>Defined in <code class="file docutils literal notranslate"><span class="pre">base_node.js</span></code>. The base class from which all node instances inherit.</p>
+<dl class="class">
+<dt id="base_node">
+<em class="property">class </em><code class="descname">base_node</code><span class="sig-paren">(</span><em>opts</em><span class="sig-paren">)</span><a class="headerlink" href="#base_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for defining wrtsm nodes</p>
+<dl class="function">
+<dt id="base_node.connect">
+<code class="descclassname">base_node.</code><code class="descname">connect</code><span class="sig-paren">(</span><em>sink</em>, <em>opts</em><span class="sig-paren">)</span><a class="headerlink" href="#base_node.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect node to another node</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sink</strong> (<a class="reference internal" href="index.html#base_node" title="base_node"><em>base_node</em></a>) – Node to connect to</li>
+<li><strong>opts</strong> (<em>obj</em>) – Contains {output_port = “main_output”,input_port = “main_input”}</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="base_node.process_packet">
+<code class="descclassname">base_node.</code><code class="descname">process_packet</code><span class="sig-paren">(</span><em>packet</em><span class="sig-paren">)</span><a class="headerlink" href="#base_node.process_packet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generic packet processor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>packet</strong> (<em>Dict</em>) – contains { input_port , payload }</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="web-socket">
+<span id="id3"></span><h3>Web Socket<a class="headerlink" href="#web-socket" title="Permalink to this headline">¶</a></h3>
+<p>Inherits from <code class="file docutils literal notranslate"><span class="pre">base_node</span></code>. Defined in <code class="file docutils literal notranslate"><span class="pre">web_socket.js</span></code> and consists of a javascript class which handles accessing an incoming raw data stream.</p>
+<dl class="class">
+<dt id="web_socket">
+<em class="property">class </em><code class="descname">web_socket</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="headerlink" href="#web_socket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manages the websocket connection to an incoming data stream.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>url</strong> (<em>String</em>) – The websocket url to connect to, e.g. ws://localhost:1234</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="function">
+<dt id="web_socket.connect">
+<code class="descclassname">web_socket.</code><code class="descname">connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#web_socket.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to remote websocket server. Upon success, registers the websocket connection
+as “client” with the server, enables streaming, and this.logs to console.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="web_socket.send_json">
+<code class="descclassname">web_socket.</code><code class="descname">send_json</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#web_socket.send_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends JSON data through socket.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>obj</strong> (<em>Object</em>) – Data object to send</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="data-storage">
+<span id="id4"></span><h3>Data Storage<a class="headerlink" href="#data-storage" title="Permalink to this headline">¶</a></h3>
+<p>Inherits from <code class="file docutils literal notranslate"><span class="pre">base_node</span></code>. Defined in <code class="file docutils literal notranslate"><span class="pre">data_storage.js</span></code>.</p>
+<dl class="class">
+<dt id="data_storage">
+<em class="property">class </em><code class="descname">data_storage</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#data_storage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manages data persistence and replay/simulation. Uses browser based local storage.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>String</em>) – Session identifier, use null for default time string</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="function">
+<dt id="data_storage.flush_data">
+<code class="descclassname">data_storage.</code><code class="descname">flush_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.flush_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Persists a chunk of data to localStorage. Uses session name + part_number as identifier</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.load_json">
+<code class="descclassname">data_storage.</code><code class="descname">load_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.load_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads json data into local storage</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.load_session">
+<code class="descclassname">data_storage.</code><code class="descname">load_session</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.load_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a data storage session from localStorage. Returns Array.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.start_saving">
+<code class="descclassname">data_storage.</code><code class="descname">start_saving</code><span class="sig-paren">(</span><em>rate</em><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.start_saving" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start saving data to localStorage. Data is saved in chunks called ‘parts’.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>rate</strong> (<em>Number</em>) – The rate to flush data to localStorage in SECONDS</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.start_stream">
+<code class="descclassname">data_storage.</code><code class="descname">start_stream</code><span class="sig-paren">(</span><em>speed</em><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.start_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start streaming the session that was previously loaded from localStorage</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.start_stream_loop">
+<code class="descclassname">data_storage.</code><code class="descname">start_stream_loop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.start_stream_loop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function for start_stream()</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.stop_saving">
+<code class="descclassname">data_storage.</code><code class="descname">stop_saving</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.stop_saving" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop saving data to localStorage</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.stop_stream">
+<code class="descclassname">data_storage.</code><code class="descname">stop_stream</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.stop_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop streaming the session that was previously loaded from localStorage</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.stream_single">
+<code class="descclassname">data_storage.</code><code class="descname">stream_single</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.stream_single" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stream single packet</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.to_csv">
+<code class="descclassname">data_storage.</code><code class="descname">to_csv</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.to_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes csv string from this.loaded_session</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.to_json">
+<code class="descclassname">data_storage.</code><code class="descname">to_json</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.to_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes and downloads json string from this.loaded_session</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data_storage.zero_time_axis">
+<code class="descclassname">data_storage.</code><code class="descname">zero_time_axis</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data_storage.zero_time_axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Zero the time axis of the data session</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="transformer">
+<span id="transformer-node"></span><h3>Transformer<a class="headerlink" href="#transformer" title="Permalink to this headline">¶</a></h3>
+<p>Inherits from <code class="file docutils literal notranslate"><span class="pre">base_node</span></code>. Defined in <code class="file docutils literal notranslate"><span class="pre">transformer.js</span></code>.</p>
+<dl class="class">
+<dt id="transformer">
+<em class="property">class </em><code class="descname">transformer</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#transformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies a transformation function to a data stream</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>f</strong> (<em>function</em>) – The function to use as transform</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="function">
+<dt id="transformer.set_transformer">
+<code class="descclassname">transformer.</code><code class="descname">set_transformer</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="headerlink" href="#transformer.set_transformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the transformer function</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>func</strong> (<em>function</em>) – Function which accepts ONE raw data object and transforms it.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="event-detector">
+<span id="id5"></span><h3>Event Detector<a class="headerlink" href="#event-detector" title="Permalink to this headline">¶</a></h3>
+<p>Inherits from <code class="file docutils literal notranslate"><span class="pre">base_node</span></code>. Defined in <code class="file docutils literal notranslate"><span class="pre">event_detector.js</span></code>.</p>
+<dl class="class">
+<dt id="event_detector">
+<em class="property">class </em><code class="descname">event_detector</code><span class="sig-paren">(</span><em>opts</em><span class="sig-paren">)</span><a class="headerlink" href="#event_detector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detects and emits deviation “events” from streams of arbitraty data objects</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>opts</strong> (<em>Object</em>) – configuration options</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="function">
+<dt id="event_detector.check_baseline">
+<code class="descclassname">event_detector.</code><code class="descname">check_baseline</code><span class="sig-paren">(</span><em>detected</em><span class="sig-paren">)</span><a class="headerlink" href="#event_detector.check_baseline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Statefully checks if detector is at baseline</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>detected</strong> (<em>Boolean</em>) – result of this.detect()</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="event_detector.flush_event">
+<code class="descclassname">event_detector.</code><code class="descname">flush_event</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#event_detector.flush_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flush current event to the event buffer</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="event_detector.init_event">
+<code class="descclassname">event_detector.</code><code class="descname">init_event</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#event_detector.init_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initiate event</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="event_detector.init_history_buffer">
+<code class="descclassname">event_detector.</code><code class="descname">init_history_buffer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#event_detector.init_history_buffer" title="Permalink to this definition">¶</a></dt>
+<dd><p>init history buffer</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="event_detector.process_data">
+<code class="descclassname">event_detector.</code><code class="descname">process_data</code><span class="sig-paren">(</span><em>Data</em><span class="sig-paren">)</span><a class="headerlink" href="#event_detector.process_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a received data object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Data</strong> (<em>obj</em>) – object to receive</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="logger">
+<span id="logger-node"></span><h3>Logger<a class="headerlink" href="#logger" title="Permalink to this headline">¶</a></h3>
+<p>Inherits from <code class="file docutils literal notranslate"><span class="pre">base_node</span></code>. Defined in <code class="file docutils literal notranslate"><span class="pre">logger_node.js</span></code>.</p>
+<dl class="class">
+<dt id="logger_node">
+<em class="property">class </em><code class="descname">logger_node</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#logger_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs whatever it receives</p>
+</dd></dl>
+
+</div>
+<div class="section" id="simulator">
+<span id="simulator-node"></span><h3>Simulator<a class="headerlink" href="#simulator" title="Permalink to this headline">¶</a></h3>
+<p>Inherits from <code class="file docutils literal notranslate"><span class="pre">base_node</span></code>. Defined in <code class="file docutils literal notranslate"><span class="pre">simulator.js</span></code>.</p>
+<dl class="class">
+<dt id="simulator">
+<em class="property">class </em><code class="descname">simulator</code><span class="sig-paren">(</span><em>opts</em><span class="sig-paren">)</span><a class="headerlink" href="#simulator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulator node for testing data streams</p>
+<dl class="function">
+<dt id="simulator.disable_stream">
+<code class="descclassname">simulator.</code><code class="descname">disable_stream</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simulator.disable_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop streaming data</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="simulator.enable_stream">
+<code class="descclassname">simulator.</code><code class="descname">enable_stream</code><span class="sig-paren">(</span><em>r</em><span class="sig-paren">)</span><a class="headerlink" href="#simulator.enable_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>enable streaming simulated data</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="state-machine">
+<span id="state-machine-utils"></span><h3>State Machine<a class="headerlink" href="#state-machine" title="Permalink to this headline">¶</a></h3>
+<p>Inherits from <code class="file docutils literal notranslate"><span class="pre">base_node</span></code>. Defined in <code class="file docutils literal notranslate"><span class="pre">state_machine.js</span></code>. This class encapsulates functionality for configuration and implementation of a state machine detection system.</p>
+<p>Broadly, the architecture consists of a <cite>buffer</cite> which holds the last <cite>buffer_size</cite> streaming values received. Each time a new data packet is received it is appended to the buffer and the oldest value is dropped.</p>
+<p>Below are definitions of key components of the architecture:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="81%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Component</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Sensor</td>
+<td>A function which takes  a <cite>state_machine</cite> and returns a scalar (plottable) value OR false</td>
+</tr>
+<tr class="row-odd"><td>Detector</td>
+<td>A function which takes a <cite>state_machine</cite> and returns a boolean.</td>
+</tr>
+<tr class="row-even"><td>Applicator</td>
+<td>A function which takes a  <cite>state_machine</cite>  and modifies its state in a particular way</td>
+</tr>
+<tr class="row-odd"><td>Transitioner</td>
+<td>A dictionary that consists of a paired <cite>detector</cite> and <cite>applicator</cite></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="sensors">
+<h4>Sensors<a class="headerlink" href="#sensors" title="Permalink to this headline">¶</a></h4>
+<p>Sensors enable three important features:</p>
+<ul class="simple">
+<li>Computation of derived data values in realtime</li>
+<li>Use of said values to easily create Detectors by combining a Sensor and a comparison operation</li>
+<li>Declarative style specification of graphing derived values in realtime (i.e specify which Sensors should be graphed)</li>
+</ul>
+<p>For example, a Sensor which calculates the diff of an incoming voltage signal would look like the following:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">function</span> <span class="nx">diff</span><span class="p">(</span><span class="nx">state_machine</span><span class="p">)</span> <span class="p">{</span>
+   <span class="kd">var</span> <span class="nx">buffer</span> <span class="o">=</span> <span class="nx">state_machine</span><span class="p">.</span><span class="nx">buffer</span>
+   <span class="kd">var</span> <span class="nx">len</span> <span class="o">=</span> <span class="nx">buffer</span><span class="p">.</span><span class="nx">length</span>
+
+   <span class="c1">//in general, the buffer consists of data objects, which have fields of interest</span>
+   <span class="c1">//for example, if we are interested in the voltage measurement for each data packet...</span>
+   <span class="kd">var</span> <span class="nx">voltages</span> <span class="o">=</span> <span class="nx">buffer</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span> <span class="nx">e</span> <span class="p">=&gt;</span> <span class="nx">e</span><span class="p">[</span><span class="s1">&#39;voltage&#39;</span><span class="p">]</span> <span class="p">)</span>
+
+   <span class="k">return</span> <span class="nx">voltages</span><span class="p">[</span><span class="nx">len</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="nx">voltages</span><span class="p">[</span><span class="nx">len</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>   <span class="c1">//returns the diff of the last two values</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<span id="document-server_implementation"></span><div class="section" id="server-implementation">
+<span id="id1"></span><h2>Server Implementation<a class="headerlink" href="#server-implementation" title="Permalink to this headline">¶</a></h2>
+<p id="intro-text">The <a class="reference internal" href="index.html#web-socket"><span class="std std-ref">Web Socket</span></a> class establishes a connection with a remote websocket server and must communicate with it using a predefined protocol, described here. It does so by sending data packets, each of which is a javascript object containing fields <cite>type</cite> and <cite>data</cite>, for example:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;control&quot;</span><span class="p">,</span> <span class="nx">data</span> <span class="o">:</span> <span class="s2">&quot;stop&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Below is a table describing the appropriate server responses to various messages from the <a class="reference internal" href="index.html#web-socket"><span class="std std-ref">Web Socket</span></a> class.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="13%" />
+<col width="69%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Msg Type</th>
+<th class="head">Data</th>
+<th class="head">Server Response</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Control</td>
+<td>start</td>
+<td>Starts forwarding data packets</td>
+</tr>
+<tr class="row-odd"><td>Control</td>
+<td>stop</td>
+<td>Stops  forwarding data packets</td>
+</tr>
+<tr class="row-even"><td>Register</td>
+<td>ID</td>
+<td>Saves CLIENT connection for forwarding</td>
+</tr>
+</tbody>
+</table>
+<p>Currently, the websocket server is implemented in <code class="file docutils literal notranslate"><span class="pre">websocket_server.js</span></code>, and run via nodejs. It accepts two incoming connections, one from an arbitraty input to obtain the raw data, and the other from the client to which it will forward data. In order to distinguish the two a registration is performed by the browser (i.e. client) after it connects. When the server receives a data packet it can relay it to the client using the registered connection.</p>
+<p>This architecture may be updated in the future, as the nature of the data source and development requirements change. Stay tuned!</p>
+</div>
+<span id="document-getting_started"></span><div class="section" id="getting-started">
+<span id="id1"></span><h2>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="installation">
+<span id="id2"></span><h3>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h3>
+<p>The nFLOW libary is located in the Github repository at dist/nflow.js. This tutorial assumes you have managed to load that file into your browser and have access to the nflow global object.</p>
+</div>
+<div class="section" id="tutorial">
+<span id="id3"></span><h3>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h3>
+<p>Let’s dive in to how you can use nFLOW for real time signal analysis. We will be using motion analysis data which was pre-recorded using a commercial IMU (inertial measurement unit). The IMU was on the leg of a healthy walking patient. For prototyping puposes, nFLOW can simulate this data as if it is being received in real time. In this tutorial, we will create a pipeline for detecting when the  patients foot contacts and leaves the ground.</p>
+<div class="section" id="logging-simulated-motion-analysis-data">
+<h4>Logging Simulated Motion Analysis Data<a class="headerlink" href="#logging-simulated-motion-analysis-data" title="Permalink to this headline">¶</a></h4>
+<p>The first step is loading the sample data into a data_storage node, which will allow us to simulate the data packets arriving in real time.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">//1. Get the sample data from nflow lib</span>
+<span class="kd">let</span> <span class="nx">sample_walk</span> <span class="o">=</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">resources</span><span class="p">.</span><span class="nx">sample_walk</span>
+
+<span class="c1">//2. Create a data_storage node with session_id &#39;sample_walk&#39; which will hold the data</span>
+<span class="kd">let</span> <span class="nx">walk_simulator</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">data_storage</span><span class="p">(</span><span class="s2">&quot;sample_walk&quot;</span><span class="p">)</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">set_session</span><span class="p">(</span><span class="nx">sample_walk</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>At this point, we are almost ready to call <code class="code docutils literal notranslate"><span class="pre">walk_simulator.start_stream()</span></code>, however, we must first connect the walk_simulator to another node for vizualizing its output. Lets try a logger node so we can inspect what is coming out (via the dev console):</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">//3. Create logger node</span>
+<span class="kd">let</span> <span class="nx">logger_node</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">logger_node</span><span class="p">()</span>
+
+<span class="c1">//4. Connect the data_storage node to the logger node</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="nx">logger_node</span><span class="p">)</span>
+
+<span class="c1">//5. Start streaming data and stop after 1 second</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">start_stream</span><span class="p">()</span>
+<span class="nx">setTimeout</span><span class="p">(</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">stop_stream</span><span class="p">()</span> <span class="p">}</span> <span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You should see the logger node outputting the results of the stream from the walk_simulator node, like this:</p>
+<a class="reference internal image-reference" href="_images/tut_1.png"><img alt="_images/tut_1.png" src="_images/tut_1.png" style="width: 686.0px; height: 423.0px;" /></a>
+<p>Just with the code above, you have learned how to:</p>
+<ol class="arabic simple">
+<li>Create nFLOW nodes using <code class="code docutils literal notranslate"><span class="pre">new</span> <span class="pre">nflow.mods.MODULE_NAME()</span></code></li>
+<li>Connect nFLOW nodes using <code class="code docutils literal notranslate"><span class="pre">node_1.connect(node_2)</span></code></li>
+</ol>
+</div>
+<div class="section" id="analyzing-and-altering-data-packets">
+<h4>Analyzing and Altering Data Packets<a class="headerlink" href="#analyzing-and-altering-data-packets" title="Permalink to this headline">¶</a></h4>
+<p>Note that each data packet has several fields, including acceleration (acc) and gyroscope (gyr) in dimensions X, Y, and Z, as well as time in seconds and ‘dev’ or device ID. For now lets focus on the gyroscope Z data of device ‘B’, which gives us helpful information regarding walking. In order to isolate the aforementioned signal, we will use a <code class="file docutils literal notranslate"><span class="pre">transformer</span></code>. A transformer is a type of nFLOW <code class="file docutils literal notranslate"><span class="pre">node</span></code> which accepts data, applies a function to it, then relays it. Thus, we need a function which detects device ‘B’ and which accesses the gyr_z field of the packet:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Create the transformer</span>
+<span class="kd">let</span> <span class="nx">transformer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">transformer</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">payload</span><span class="p">)</span> <span class="p">{</span>
+   <span class="k">if</span> <span class="p">(</span><span class="nx">packet</span><span class="p">.</span><span class="nx">dev</span> <span class="o">==</span> <span class="s1">&#39;B&#39;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="p">{</span><span class="nx">gyr_z</span> <span class="o">:</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">gyr_z</span><span class="p">,</span> <span class="nx">dev</span> <span class="o">:</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">dev</span><span class="p">}</span>
+   <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">SKIP_PAYLOAD</span>
+   <span class="p">}</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+<p>It is important to note that the return value <code class="code docutils literal notranslate"><span class="pre">nflow.SKIP_PAYLOAD</span></code> results in the payload being dropped and not forwarded to any other nFLOW nodes.</p>
+<p>The next step is to put this transformer node between the walk_simulator and the logger node by modifying our code so far like this:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">//1. Get the sample data from nflow lib</span>
+<span class="kd">let</span> <span class="nx">sample_walk</span> <span class="o">=</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">resources</span><span class="p">.</span><span class="nx">sample_walk</span>
+
+<span class="c1">//2. Create a data_storage node with session_id &#39;sample_walk&#39; which will hold the data</span>
+<span class="kd">let</span> <span class="nx">walk_simulator</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">data_storage</span><span class="p">(</span><span class="s2">&quot;sample_walk&quot;</span><span class="p">)</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">set_session</span><span class="p">(</span><span class="nx">sample_walk</span><span class="p">)</span>
+
+<span class="c1">//3. Create logger node</span>
+<span class="kd">let</span> <span class="nx">logger_node</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">logger_node</span><span class="p">()</span>
+
+<span class="c1">//4. Create our transformer</span>
+<span class="kd">let</span> <span class="nx">transformer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">transformer</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">payload</span><span class="p">)</span> <span class="p">{</span>
+   <span class="k">if</span> <span class="p">(</span><span class="nx">payload</span><span class="p">.</span><span class="nx">dev</span> <span class="o">==</span> <span class="s1">&#39;B&#39;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="p">{</span><span class="nx">gyr_z</span> <span class="o">:</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">gyr_z</span> <span class="p">,</span> <span class="nx">dev</span> <span class="o">:</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">dev</span> <span class="p">}</span>
+   <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">SKIP_PAYLOAD</span>
+   <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="c1">//5. Connect the nodes together!</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="nx">transformer</span><span class="p">).</span><span class="nx">connect</span><span class="p">(</span><span class="nx">logger_node</span><span class="p">)</span>
+
+<span class="c1">//6. Start streaming data and stop after 1 second</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">start_stream</span><span class="p">()</span>
+<span class="nx">setTimeout</span><span class="p">(</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">stop_stream</span><span class="p">()</span> <span class="p">}</span> <span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You should see the output below. Note that only dev == ‘B’ and gyr_z make it through to the logger node.</p>
+<a class="reference internal image-reference" href="_images/tut_2.png"><img alt="_images/tut_2.png" src="_images/tut_2.png" style="width: 684.0px; height: 238.0px;" /></a>
+<p>Two new concepts to keep in mind:</p>
+<ol class="arabic simple">
+<li>Create a transformer node using <code class="code docutils literal notranslate"><span class="pre">new</span> <span class="pre">nflow.mods.transformer(TRANSFORMER_FUNCTION)</span></code></li>
+<li>Chain nFLOW nodes together using <code class="code docutils literal notranslate"><span class="pre">node_1.connect(node_2).connect(node_3)</span></code></li>
+</ol>
+</div>
+<div class="section" id="vizualizing-data">
+<h4>Vizualizing Data<a class="headerlink" href="#vizualizing-data" title="Permalink to this headline">¶</a></h4>
+<p>Ok, it is about time we make a graph, right? nFLOW makes this extremely easy by leveraging the Bokeh Javascript API.</p>
+<p>First, make sure there is an <cite>HTML DIV</cite> node  <code class="code docutils literal notranslate"><span class="pre">&lt;div</span> <span class="pre">id=&quot;nflow&quot;&gt;&lt;/div&gt;</span></code> available on your web page for nFLOW to graph into. The ID of the div (“nflow”) will be used to identify the container for graphing.</p>
+<p>Next, create an <code class="file docutils literal notranslate"><span class="pre">object_grapher_node</span></code> by using the following command:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">let</span> <span class="nx">grapher</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">ui_object_grapher</span><span class="p">({</span><span class="nx">container</span><span class="o">:</span><span class="s2">&quot;nflow&quot;</span><span class="p">,</span><span class="nx">exclude</span> <span class="o">:</span> <span class="p">[</span><span class="s2">&quot;dev&quot;</span><span class="p">]})</span>
+</pre></div>
+</div>
+<p>The <cite>exclude</cite> argument tells the object grapher to ignore the field “dev” in the payload (which is a string thus we do not want to graph it!)</p>
+<p>Can you guess how we will connect the incoming data to the grapher? See the completed code here:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span> <span class="c1">//1. Get the sample data from nflow lib</span>
+<span class="kd">let</span> <span class="nx">sample_walk</span> <span class="o">=</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">resources</span><span class="p">.</span><span class="nx">sample_walk</span>
+
+<span class="c1">//2. Create a data_storage node with session_id &#39;sample_walk&#39; which will hold the data</span>
+<span class="kd">let</span> <span class="nx">walk_simulator</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">data_storage</span><span class="p">(</span><span class="s2">&quot;sample_walk&quot;</span><span class="p">)</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">set_session</span><span class="p">(</span><span class="nx">sample_walk</span><span class="p">)</span>
+
+<span class="c1">//3. Create grapher</span>
+<span class="kd">let</span> <span class="nx">grapher</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">ui_object_grapher</span><span class="p">(</span> <span class="p">{</span><span class="nx">container</span> <span class="o">:</span> <span class="s2">&quot;nflow&quot;</span> <span class="p">,</span> <span class="nx">exclude</span> <span class="o">:</span> <span class="p">[</span><span class="s2">&quot;dev&quot;</span><span class="p">]}</span> <span class="p">)</span>
+
+<span class="c1">//4. Create our transformer</span>
+<span class="kd">let</span> <span class="nx">transformer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">mods</span><span class="p">.</span><span class="nx">transformer</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">payload</span><span class="p">)</span> <span class="p">{</span>
+   <span class="k">if</span> <span class="p">(</span><span class="nx">payload</span><span class="p">.</span><span class="nx">dev</span> <span class="o">==</span> <span class="s1">&#39;B&#39;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="p">{</span><span class="nx">gyr_z</span> <span class="o">:</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">gyr_z</span> <span class="p">,</span> <span class="nx">dev</span> <span class="o">:</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">dev</span> <span class="p">}</span>
+   <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">nflow</span><span class="p">.</span><span class="nx">SKIP_PAYLOAD</span>
+   <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="c1">//5. Connect the nodes together!</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="nx">transformer</span><span class="p">).</span><span class="nx">connect</span><span class="p">(</span><span class="nx">grapher</span><span class="p">)</span>
+
+<span class="c1">//6. Start streaming data and stop after 10 seconds</span>
+<span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">start_stream</span><span class="p">()</span>
+<span class="nx">setTimeout</span><span class="p">(</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="nx">walk_simulator</span><span class="p">.</span><span class="nx">stop_stream</span><span class="p">()</span> <span class="p">}</span> <span class="p">,</span> <span class="mi">10000</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You should see a real time graph, like this:</p>
+<a class="reference internal image-reference" href="_images/tut_3.gif"><img alt="_images/tut_3.gif" src="_images/tut_3.gif" style="width: 670.0px; height: 516.0px;" /></a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Sheun Aluko
+      
+        <span class="commit">
+          Revision <code>a89dbe68</code>.
+        </span>
+      
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book"> Read the Docs</span>
+      v: latest
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      <dl>
+        <dt>Versions</dt>
+        
+          <dd><a href="/en/latest/">latest</a></dd>
+        
+      </dl>
+      <dl>
+        <dt>Downloads</dt>
+        
+          <dd><a href="//readthedocs.org/projects/wrtsm/downloads/pdf/latest/">pdf</a></dd>
+        
+          <dd><a href="//readthedocs.org/projects/wrtsm/downloads/htmlzip/latest/">htmlzip</a></dd>
+        
+          <dd><a href="//readthedocs.org/projects/wrtsm/downloads/epub/latest/">epub</a></dd>
+        
+      </dl>
+      <dl>
+        <dt>On Read the Docs</dt>
+          <dd>
+            <a href="//readthedocs.org/projects/wrtsm/?fromdocs=wrtsm">Project Home</a>
+          </dd>
+          <dd>
+            <a href="//readthedocs.org/builds/wrtsm/?fromdocs=wrtsm">Builds</a>
+          </dd>
+      </dl>
+      <hr/>
+      Free document hosting provided by <a href="http://www.readthedocs.org">Read the Docs</a>.
+
+    </div>
+  </div>
+
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+   
+
+</body>
+</html>

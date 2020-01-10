@@ -1,4 +1,0 @@
-node ./src/node/websocket_server.js & 
-node ./src/node/web_socket_data_sim.js & 
-
-wait
