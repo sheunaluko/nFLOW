@@ -10,7 +10,7 @@ Simply include the `nflow.js` file in your html, and tell nFLOW which DOM node y
 ```html
 <html>
 <head>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/sheunaluko/nFLOW@v0.3-alpha/dist/nflow.js"></script>
+  <script type="text/javascript" src="./path/to/nflow.js"></script>
 </head>
 
 <body>
